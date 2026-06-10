@@ -1,0 +1,26 @@
+[
+  {
+    "out": "01-dawn-takeover",
+    "prompt": "iPhone app UI design, vertical 9:16, full screen. An alarm-ringing takeover screen for an anime alarm app called WakeSaga, design language 'Ink and Signal': OLED-true ink navy background #0B0E14, warm paper-white text #F2EFE6. Top half: huge ultra-condensed heavy italic episode number 'EP. 48' in paper white with a slight -6 degree skew, below it one anime-style subtitle line with white text and thin black stroke reading 'Oi. Day 48. The rival is already up.' Bottom 45%: one full-width crimson #FF2E4C slab button with bold text 'BEGIN QUEST', below it a dimmer 40% opacity text row 'FILLER (snooze 9 min)'. Minimal manga halftone texture in corners, subtle radial speed lines behind the episode number. No status bar, no tab bar, nothing else on screen. Clean, premium, dark, high contrast mobile UI."
+  },
+  {
+    "out": "02-wake-quest",
+    "prompt": "iPhone app UI design, vertical 9:16. A wake mission verification screen for an anime alarm app, design language 'Ink and Signal': ink navy #0B0E14 background. Top quarter: giant heavy condensed all-caps instruction 'PHOTOGRAPH THE SKY' in warm paper-white #F2EFE6, max impact, plus one small line-art sky pictogram. The remaining 75% of the screen is a full-bleed camera viewfinder showing a dawn sky through a window, framed by a manga panel border: 2px ink border, 4px corners, subtle halftone screentone overlay at the edges. Bottom quarter: one huge circular crimson #FF2E4C shutter button. One small dim fallback text row at the very bottom: 'CAN'T VERIFY - 20 SHAKES INSTEAD'. No other UI. Dark, cinematic, extremely clear hierarchy."
+  },
+  {
+    "out": "03-title-card-slam",
+    "prompt": "iPhone app UI design, vertical 9:16. The signature 'Title Card Slam' moment of an anime alarm app: a generated anime episode title card filling the screen at a dynamic 12-degree tilt with a manga halftone burst and radial speed lines. Background: a painterly anime sunrise gradient, deep indigo into ember orange. Centered: massive ultra-condensed all-caps display type in warm paper white reading 'EPISODE 48' and below it larger 'THE ESSAY DEMON', with 2px black ink stroke, slight skew, like a shonen anime episode title card. Small gold #FFC93C chapter stamp mark in a corner. Cinematic, screenshot-worthy, premium anime motion-graphics aesthetic, no other UI chrome."
+  },
+  {
+    "out": "04-wake-card-mint",
+    "prompt": "iPhone app UI design, vertical 9:16. A collectible 'Wake Card' minting screen in an anime alarm app, design language 'Ink and Signal': ink navy #0B0E14 background, subtle dark vignette. Center: a vertical trading card at 70% screen height with 2px ink border and 4px corners: the card art is a real bedroom morning photo transformed by a manga screentone halftone filter into a black-and-white manga panel, with a big episode chapter stamp 'EP 48', huge wake time '6:31', and a receipt-style monospace footer row 'CLEAR - STORM RISER - ARC II DAY 6'. The card has a gold #FFC93C holographic foil shine sweep across one corner. Below the card: one gold full-width 'SHARE' button and a small dim 'Done' text. Premium, collectible, dark, tactile."
+  },
+  {
+    "out": "05-today-home",
+    "prompt": "iPhone app UI design, vertical 9:16. The daytime home screen 'TODAY' of an anime alarm app, design language 'Ink and Signal': ink navy #0B0E14 background, warm paper-white #F2EFE6 text, manga-influenced minimal panels with 2px ink borders. Top-center anchor: alarm time '6:30' large with a small toggle, top-left a small chip 'ARC II - EP 48'. Center: one massive circular crimson #FF2E4C button labeled 'LOCK IN' (60% screen width) with a soft breathing glow, above it one short mission line 'Finish the essay outline.' Bottom: today's minted manga-panel wake card peeking up from the bottom edge. Bottom tab bar with exactly three labels: TODAY, SAGA, CAST. One accent color only (crimson). Calm, dark, extremely uncluttered."
+  },
+  {
+    "out": "06-saga-shelf",
+    "prompt": "iPhone app UI design, vertical 9:16. The 'SAGA' history tab of an anime alarm app, design language 'Ink and Signal': ink navy #0B0E14, paper-white type. Top: enormous additive episode counter 'EP 212' in ultra-condensed heavy type. Below: a horizontal shelf of bound manga volume spines, each spine a 14-day arc with generated anime cover art, the current spine partially filled, one gilded finale slot. Below the shelf: a vertical timeline of daily pages: small rows with episode title, manga-panel card thumbnail and wake time; one row rendered in red ink #B3122E with torn paper edges labeled 'KNOCKDOWN - CH. 41'. Segmented control: Timeline / Binder / Rival. Bottom tab bar: TODAY, SAGA, CAST. Dark, archival, premium, like a personal manga library."
+  }
+]
