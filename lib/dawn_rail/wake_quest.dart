@@ -131,7 +131,19 @@ class _WakeQuestState extends State<WakeQuest> {
                       child: SkewedDisplay(_instruction, size: 64),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'STEP 2/5 · CLEAR PROOF TO UNLOCK THE TITLE CARD',
+                      textAlign: TextAlign.center,
+                      style: InkSignal.mono(
+                        12,
+                        color: InkSignal.paper.withValues(alpha: 0.54),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   Expanded(
                     child: _mode == 'Sky Photo'
                         ? _Viewfinder(verified: _verified, onShutter: _succeed)

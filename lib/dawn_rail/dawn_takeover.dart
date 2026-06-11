@@ -110,6 +110,14 @@ class _DawnTakeoverState extends State<DawnTakeover>
                         color: InkSignal.paper.withValues(alpha: 0.42),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'NEXT: WAKE QUEST -> TITLE CARD -> EPISODE',
+                      style: InkSignal.mono(
+                        11,
+                        color: InkSignal.paper.withValues(alpha: 0.5),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -125,7 +133,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
                   children: [
                     // The one crimson element on this screen.
                     SlabButton(
-                      'CLEAR ${state.quest}',
+                      'START WAKE QUEST',
                       key: const Key('beginQuest'),
                       onTap: _beginQuest,
                       height: 88,

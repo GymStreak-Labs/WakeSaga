@@ -382,7 +382,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'WAKE QUEST',
       title: 'The alarm does not end until the quest is cleared.',
       body:
-          'This is the Wayk-inspired mechanic: one tiny proof mission before the episode unlocks.',
+          'This is the Wayk-inspired mechanic: one tiny proof mission before the title card and episode unlock.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
@@ -1236,6 +1236,10 @@ class _ChoiceStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Header(step: step),
+        if (step.field == 'quest') ...[
+          const SizedBox(height: 14),
+          const _WakeQuestProtocolCard(compact: true),
+        ],
         const SizedBox(height: 18),
         Expanded(
           child: ListView.separated(
@@ -1392,12 +1396,109 @@ class _EducationStep extends StatelessWidget {
                     weight: FontWeight.w700,
                   ),
                 ),
+                if (step.kicker == 'WAKE QUEST') ...[
+                  const SizedBox(height: 18),
+                  const _WakeQuestProtocolCard(compact: false, framed: false),
+                ],
               ],
             ),
           ),
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _WakeQuestProtocolCard extends StatelessWidget {
+  const _WakeQuestProtocolCard({required this.compact, this.framed = true});
+
+  final bool compact;
+  final bool framed;
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = compact
+        ? const [
+            ('1', 'Alarm'),
+            ('2', 'Quest'),
+            ('3', 'Title'),
+            ('4', 'Episode'),
+            ('5', 'Card'),
+          ]
+        : const [
+            ('1', 'Alarm rings'),
+            ('2', 'Complete proof mission'),
+            ('3', 'Title Card unlocks'),
+            ('4', 'Morning Episode plays'),
+            ('5', 'Wake Card mints'),
+          ];
+    final child = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'WAKE QUEST PROTOCOL',
+          style: InkSignal.mono(
+            10,
+            color: InkSignal.paper.withValues(alpha: 0.48),
+          ),
+        ),
+        SizedBox(height: compact ? 10 : 12),
+        Row(
+          children: [
+            for (var i = 0; i < steps.length; i++) ...[
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: compact ? 24 : 30,
+                      height: compact ? 24 : 30,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i == 1 ? InkSignal.crimson : InkSignal.paper,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        steps[i].$1,
+                        style: InkSignal.mono(
+                          compact ? 10 : 11,
+                          color: i == 1 ? Colors.white : InkSignal.base,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      steps[i].$2.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      maxLines: compact ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: InkSignal.mono(
+                        compact ? 8 : 9,
+                        color: i == 1
+                            ? InkSignal.paper
+                            : InkSignal.paper.withValues(alpha: 0.48),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (i != steps.length - 1)
+                Container(
+                  width: compact ? 8 : 10,
+                  height: 2,
+                  color: InkSignal.inkBorder,
+                ),
+            ],
+          ],
+        ),
+      ],
+    );
+    if (!framed) return child;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(compact ? 12 : 14),
+      decoration: InkSignal.panel(color: InkSignal.base),
+      child: child,
     );
   }
 }
