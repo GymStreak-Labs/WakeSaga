@@ -19,6 +19,8 @@ enum _StepKind {
   reveal,
 }
 
+enum _StepTransition { soft, crimson, slam }
+
 class _Choice {
   const _Choice(this.label, {this.note});
 
@@ -34,6 +36,7 @@ class _OnboardingStep {
     required this.body,
     this.field,
     this.choices = const [],
+    this.entryTransition = _StepTransition.soft,
   });
 
   final _StepKind kind;
@@ -42,6 +45,7 @@ class _OnboardingStep {
   final String body;
   final String? field;
   final List<_Choice> choices;
+  final _StepTransition entryTransition;
 }
 
 /// Long Cold Open onboarding.
@@ -67,6 +71,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   int _index = 0;
   int _transitionDirection = 1;
   int _transitionTick = 0;
+  _StepTransition _activeTransition = _StepTransition.soft;
   bool _isTransitioning = false;
   DateTime _picked = DateTime(2026, 1, 1, 6, 30);
 
@@ -107,6 +112,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.titleCard,
+      entryTransition: _StepTransition.crimson,
       kicker: 'EPISODE 0',
       title: "THE ONE WHO\nCOULDN'T WAKE UP",
       body: 'This is the last morning that gets written without you.',
@@ -198,6 +204,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.education,
+      entryTransition: _StepTransition.crimson,
       kicker: 'PAYOFF',
       title: 'Rival detected.',
       body:
@@ -257,6 +264,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.education,
+      entryTransition: _StepTransition.crimson,
       kicker: 'SAGA LOOP',
       title: 'Alarm. Wake Quest. Title Card. Episode. Wake Card.',
       body:
@@ -278,6 +286,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
+      entryTransition: _StepTransition.crimson,
       field: 'arc',
       kicker: 'ARC SELECT',
       title: 'What kind of episode are we writing?',
@@ -365,6 +374,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.education,
+      entryTransition: _StepTransition.crimson,
       kicker: 'WAKE QUEST',
       title: 'The alarm does not end until the quest is cleared.',
       body:
@@ -516,6 +526,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
+      entryTransition: _StepTransition.crimson,
       field: 'commitment',
       kicker: 'CONTRACT',
       title: 'Sign tomorrow into canon.',
@@ -524,6 +535,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.render,
+      entryTransition: _StepTransition.slam,
       kicker: 'RENDERING',
       title: 'Episode 1 is being staged.',
       body:
@@ -531,6 +543,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.reveal,
+      entryTransition: _StepTransition.slam,
       kicker: 'EPISODE 1 READY',
       title: 'Tomorrow has an opening scene.',
       body:
@@ -556,8 +569,10 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       _finish();
       return;
     }
-    final nextKind = _steps[_index + 1].kind;
-    if (nextKind == _StepKind.titleCard || nextKind == _StepKind.reveal) {
+    final transition = _steps[_index + 1].entryTransition;
+    if (transition == _StepTransition.slam) {
+      HapticFeedback.heavyImpact();
+    } else if (transition == _StepTransition.crimson) {
       HapticFeedback.mediumImpact();
     } else {
       HapticFeedback.selectionClick();
@@ -572,17 +587,35 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   }
 
   Future<void> _stagePageChange(int direction) async {
+    final targetIndex = (_index + direction).clamp(0, _steps.length - 1);
+    final transition = direction > 0
+        ? _steps[targetIndex].entryTransition
+        : _StepTransition.soft;
+
     setState(() {
       _transitionDirection = direction;
       _transitionTick++;
+      _activeTransition = transition;
       _isTransitioning = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 220));
+    if (transition == _StepTransition.soft) {
+      setState(() => _index += direction);
+      await Future<void>.delayed(const Duration(milliseconds: 280));
+      if (!mounted) return;
+      setState(() => _isTransitioning = false);
+      return;
+    }
+
+    await Future<void>.delayed(
+      Duration(milliseconds: transition == _StepTransition.slam ? 260 : 220),
+    );
     if (!mounted) return;
     setState(() => _index += direction);
 
-    await Future<void>.delayed(const Duration(milliseconds: 410));
+    await Future<void>.delayed(
+      Duration(milliseconds: transition == _StepTransition.slam ? 460 : 410),
+    );
     if (!mounted) return;
     setState(() => _isTransitioning = false);
   }
@@ -623,15 +656,39 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
                   onBack: _index == 0 ? null : _back,
                 ),
                 Expanded(
-                  child: _StepBody(
+                  child: TweenAnimationBuilder<double>(
                     key: ValueKey(_index),
-                    step: step,
-                    picked: _picked,
-                    nameController: _nameController,
-                    missionController: _missionController,
-                    answers: _answers,
-                    onSelect: _select,
-                    onTimeChanged: (value) => setState(() => _picked = value),
+                    tween: Tween(begin: 0, end: 1),
+                    duration: Duration(
+                      milliseconds: _activeTransition == _StepTransition.soft
+                          ? 280
+                          : 120,
+                    ),
+                    curve: Curves.easeOutCubic,
+                    child: _StepBody(
+                      step: step,
+                      picked: _picked,
+                      nameController: _nameController,
+                      missionController: _missionController,
+                      answers: _answers,
+                      onSelect: _select,
+                      onTimeChanged: (value) => setState(() => _picked = value),
+                    ),
+                    builder: (context, value, child) {
+                      if (_activeTransition != _StepTransition.soft) {
+                        return child!;
+                      }
+                      return Opacity(
+                        opacity: value,
+                        child: Transform.translate(
+                          offset: Offset(
+                            (1 - value) * 32 * _transitionDirection.toDouble(),
+                            (1 - value) * 10,
+                          ),
+                          child: child,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Padding(
@@ -657,10 +714,11 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
               ],
             ),
           ),
-          if (_isTransitioning)
+          if (_isTransitioning && _activeTransition != _StepTransition.soft)
             _CrimsonSwipe(
               key: ValueKey(_transitionTick),
               direction: _transitionDirection,
+              slam: _activeTransition == _StepTransition.slam,
             ),
         ],
       ),
@@ -669,16 +727,17 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
 }
 
 class _CrimsonSwipe extends StatelessWidget {
-  const _CrimsonSwipe({super.key, required this.direction});
+  const _CrimsonSwipe({super.key, required this.direction, required this.slam});
 
   final int direction;
+  final bool slam;
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
-        duration: const Duration(milliseconds: 620),
+        duration: Duration(milliseconds: slam ? 720 : 620),
         curve: Curves.easeInOutCubic,
         builder: (context, value, _) {
           final size = MediaQuery.sizeOf(context);
@@ -705,7 +764,10 @@ class _CrimsonSwipe extends StatelessWidget {
               Transform.translate(
                 offset: Offset(x, 0),
                 child: CustomPaint(
-                  painter: _CrimsonSwipePainter(direction: direction),
+                  painter: _CrimsonSwipePainter(
+                    direction: direction,
+                    slam: slam,
+                  ),
                   child: const SizedBox.expand(),
                 ),
               ),
@@ -718,14 +780,15 @@ class _CrimsonSwipe extends StatelessWidget {
 }
 
 class _CrimsonSwipePainter extends CustomPainter {
-  const _CrimsonSwipePainter({required this.direction});
+  const _CrimsonSwipePainter({required this.direction, required this.slam});
 
   final int direction;
+  final bool slam;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final bandWidth = size.width * 2.35;
-    final skew = size.width * 0.72 * direction;
+    final bandWidth = size.width * (slam ? 2.62 : 2.35);
+    final skew = size.width * (slam ? 0.88 : 0.72) * direction;
     final top = -size.height * 0.9;
     final bottom = size.height * 1.9;
     final centerX = size.width / 2;
@@ -741,21 +804,21 @@ class _CrimsonSwipePainter extends CustomPainter {
       ..drawPath(
         path,
         Paint()
-          ..color = InkSignal.crimson.withValues(alpha: 0.44)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 34),
+          ..color = InkSignal.crimson.withValues(alpha: slam ? 0.58 : 0.44)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, slam ? 42 : 34),
       )
       ..drawPath(
         path.shift(Offset(-18 * direction.toDouble(), 0)),
         Paint()
-          ..color = InkSignal.gold.withValues(alpha: 0.14)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
+          ..color = InkSignal.gold.withValues(alpha: slam ? 0.22 : 0.14)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, slam ? 24 : 18),
       )
       ..drawPath(path, Paint()..color = InkSignal.crimson);
   }
 
   @override
   bool shouldRepaint(covariant _CrimsonSwipePainter oldDelegate) {
-    return oldDelegate.direction != direction;
+    return oldDelegate.direction != direction || oldDelegate.slam != slam;
   }
 }
 
@@ -882,7 +945,6 @@ class _TopBar extends StatelessWidget {
 
 class _StepBody extends StatelessWidget {
   const _StepBody({
-    super.key,
     required this.step,
     required this.picked,
     required this.nameController,
