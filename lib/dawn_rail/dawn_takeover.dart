@@ -65,7 +65,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: StrokedSubtitle(
-                '${state.userName}. Day ${state.nextEpisode}. '
+                '${state.userName}. ${state.openingSetupLine}. '
                 'The city is still asleep. You are not.',
                 size: 19,
               ),
@@ -100,6 +100,14 @@ class _DawnTakeoverState extends State<DawnTakeover>
                       style: InkSignal.mono(
                         12,
                         color: InkSignal.paper.withValues(alpha: 0.62),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${state.proof.toUpperCase()} · ${state.wakeJolt.toUpperCase()}',
+                      style: InkSignal.mono(
+                        11,
+                        color: InkSignal.paper.withValues(alpha: 0.42),
                       ),
                     ),
                   ],

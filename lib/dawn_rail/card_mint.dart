@@ -102,6 +102,7 @@ class _CardMintState extends State<CardMint>
                       arcNumber: state.arcNumber,
                       arcDay: state.arcDay,
                       quest: state.quest,
+                      proof: state.proof,
                       shimmer: _shimmer,
                     ),
                   ),
@@ -172,6 +173,7 @@ class _WakeCard extends StatelessWidget {
     required this.arcNumber,
     required this.arcDay,
     required this.quest,
+    required this.proof,
     required this.shimmer,
   });
 
@@ -183,6 +185,7 @@ class _WakeCard extends StatelessWidget {
   final int arcNumber;
   final int arcDay;
   final String quest;
+  final String proof;
   final AnimationController shimmer;
 
   @override
@@ -265,7 +268,7 @@ class _WakeCard extends StatelessWidget {
                 // Receipt-style mono footer.
                 Text(
                   'WX CLEAR · ARC $arcNumber · DAY $arcDay\n'
-                  'QUEST ${quest.toUpperCase()} · VERIFIED',
+                  'QUEST ${quest.toUpperCase()} · ${proof.toUpperCase()}',
                   style: InkSignal.mono(
                     12,
                     color: InkSignal.paper.withValues(alpha: 0.6),

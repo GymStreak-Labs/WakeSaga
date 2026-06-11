@@ -657,6 +657,16 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       narratorChoice: _answers['narrator'] ?? 'Mentor',
       rivalLevel: _answers['intensity'] ?? 'Light',
       questType: _answers['quest'] ?? 'Get Up',
+      arcChoice: _answers['arc'] ?? 'Study Arc',
+      stakeChoice: _answers['stake'] ?? 'Grades',
+      rivalChoice: _answers['rival'] ?? 'Phone vortex',
+      questPlaceChoice: _answers['questPlace'] ?? 'Across the room',
+      proofChoice: _answers['proof'] ?? 'Movement proof',
+      difficultyChoice: _answers['difficulty'] ?? 'Normal',
+      fallbackQuestChoice: _answers['fallbackQuest'] ?? 'Shake',
+      repeatChoice: _answers['repeat'] ?? 'Weekdays',
+      joltChoice: _answers['jolt'] ?? 'Hero trailer',
+      escapeRuleChoice: _answers['behavior'] ?? 'Filler costs a chapter',
     );
   }
 
@@ -1030,7 +1040,13 @@ class _StepBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (step.kind == _StepKind.paywall) {
-      return _HardPaywallStep(onSubscribe: onSubscribe);
+      return _HardPaywallStep(
+        picked: picked,
+        name: nameController.text,
+        mission: missionController.text,
+        answers: answers,
+        onSubscribe: onSubscribe,
+      );
     }
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
@@ -1704,8 +1720,18 @@ class _RatingStep extends StatelessWidget {
 }
 
 class _HardPaywallStep extends StatefulWidget {
-  const _HardPaywallStep({required this.onSubscribe});
+  const _HardPaywallStep({
+    required this.picked,
+    required this.name,
+    required this.mission,
+    required this.answers,
+    required this.onSubscribe,
+  });
 
+  final DateTime picked;
+  final String name;
+  final String mission;
+  final Map<String, String> answers;
   final VoidCallback onSubscribe;
 
   @override
@@ -1752,6 +1778,12 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final time = formatTimeOfDay(
+      TimeOfDay(hour: widget.picked.hour, minute: widget.picked.minute),
+    );
+    final quest = widget.answers['quest'] ?? 'Get Up';
+    final narrator = widget.answers['narrator'] ?? 'Mentor';
+    final arc = widget.answers['arc'] ?? 'Study Arc';
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1781,8 +1813,8 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Episode 1 is staged. Protagonist Pass unlocks the voices, '
-                'daily AI episodes, Lock Ins, and foil Wake Cards.',
+                'Episode 1 is staged for $time. Protagonist Pass unlocks '
+                'the voices, daily AI episodes, Lock Ins, and foil Wake Cards.',
                 style: InkSignal.ui(
                   17,
                   color: InkSignal.paper.withValues(alpha: 0.68),
@@ -1790,7 +1822,7 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
                 ),
               ),
               const SizedBox(height: 16),
-              _PaywallProofStrip(),
+              _PaywallProofStrip(quest: quest, narrator: narrator, arc: arc),
               const SizedBox(height: 16),
               _SpecialOfferCard(
                 selected: _selectedPlan == 0,
@@ -1943,6 +1975,16 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
 }
 
 class _PaywallProofStrip extends StatelessWidget {
+  const _PaywallProofStrip({
+    required this.quest,
+    required this.narrator,
+    required this.arc,
+  });
+
+  final String quest;
+  final String narrator;
+  final String arc;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1951,19 +1993,33 @@ class _PaywallProofStrip extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _ProofStat(label: 'EP 1', value: 'READY'),
+            child: _ProofStat(label: 'ARC', value: _shortArc(arc)),
           ),
           Container(width: 1, height: 38, color: InkSignal.inkBorder),
           Expanded(
-            child: _ProofStat(label: 'QUEST', value: 'STAGED'),
+            child: _ProofStat(label: 'QUEST', value: _shortValue(quest)),
           ),
           Container(width: 1, height: 38, color: InkSignal.inkBorder),
           Expanded(
-            child: _ProofStat(label: 'VOICE', value: 'LOCKED'),
+            child: _ProofStat(label: 'VOICE', value: _shortValue(narrator)),
           ),
         ],
       ),
     );
+  }
+
+  static String _shortArc(String value) {
+    return value.replaceAll(' Arc', '').toUpperCase();
+  }
+
+  static String _shortValue(String value) {
+    final cleaned = value
+        .replaceAll(' vortex', '')
+        .replaceAll(' panic', '')
+        .replaceAll(' fog', '')
+        .replaceAll(' Check', '')
+        .replaceAll(' Ready', '');
+    return cleaned.toUpperCase();
   }
 }
 

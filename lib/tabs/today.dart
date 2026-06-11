@@ -27,11 +27,17 @@ class TodayTab extends StatefulWidget {
 class _TodayTabState extends State<TodayTab>
     with SingleTickerProviderStateMixin {
   late final TextEditingController _missionField = TextEditingController();
-  late final AnimationController _breathe = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 4),
-  )..repeat(reverse: true);
+  late final AnimationController _breathe;
   bool _missionHydrated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _breathe = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
 
   @override
   void didChangeDependencies() {
@@ -673,6 +679,16 @@ class _TodayTabState extends State<TodayTab>
                               : InkSignal.knockdownInk,
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${state.questReceipt.toUpperCase()} · ${state.wakeJolt.toUpperCase()}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: InkSignal.mono(
+                          10,
+                          color: InkSignal.paper.withValues(alpha: 0.45),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -712,20 +728,20 @@ class _TodayTabState extends State<TodayTab>
           ),
           const SizedBox(height: 14),
           // Stamp row.
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _Stamp(
                 label: 'CLEARED',
                 color: InkSignal.verifyGreen,
                 active: today == DayOutcome.cleared,
               ),
-              const SizedBox(width: 8),
               _Stamp(
                 label: 'SURVIVED',
                 color: InkSignal.paper,
                 active: today == null,
               ),
-              const SizedBox(width: 8),
               _Stamp(
                 label: 'KNOCKED DOWN',
                 color: InkSignal.knockdownInk,
@@ -798,6 +814,40 @@ class _TodayTabState extends State<TodayTab>
             style: InkSignal.mono(
               15,
               color: InkSignal.paper.withValues(alpha: 0.75),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: InkSignal.panel(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'EPISODE 1 SETTINGS',
+                  style: InkSignal.mono(
+                    11,
+                    color: InkSignal.paper.withValues(alpha: 0.45),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${state.arc} · ${state.rival} · ${state.quest}',
+                  style: InkSignal.ui(17, weight: FontWeight.w900),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${state.repeatRhythm} · ${state.wakeJolt} · ${state.escapeRule}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: InkSignal.ui(
+                    13,
+                    color: InkSignal.paper.withValues(alpha: 0.55),
+                    weight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 18),

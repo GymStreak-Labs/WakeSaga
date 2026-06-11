@@ -95,6 +95,16 @@ class AppState extends ChangeNotifier {
     required String narratorChoice,
     required String rivalLevel,
     required String questType,
+    required String arcChoice,
+    required String stakeChoice,
+    required String rivalChoice,
+    required String questPlaceChoice,
+    required String proofChoice,
+    required String difficultyChoice,
+    required String fallbackQuestChoice,
+    required String repeatChoice,
+    required String joltChoice,
+    required String escapeRuleChoice,
   }) {
     alarmTime = time;
     alarmEnabled = true;
@@ -103,6 +113,16 @@ class AppState extends ChangeNotifier {
     narrator = narratorChoice;
     rivalIntensity = rivalLevel;
     quest = questType;
+    arc = arcChoice;
+    stake = stakeChoice;
+    rival = rivalChoice;
+    questPlace = questPlaceChoice;
+    proof = proofChoice;
+    difficulty = difficultyChoice;
+    fallbackQuest = fallbackQuestChoice;
+    repeatRhythm = repeatChoice;
+    wakeJolt = joltChoice;
+    escapeRule = escapeRuleChoice;
     firstRunComplete = true;
     notifyListeners();
   }
@@ -111,6 +131,21 @@ class AppState extends ChangeNotifier {
   String userName = 'Rookie';
   String narrator = 'Mentor';
   String rivalIntensity = 'Light'; // Off / Light / Full.
+  String arc = 'Study Arc';
+  String stake = 'Grades';
+  String rival = 'Phone vortex';
+  String questPlace = 'Across the room';
+  String proof = 'Movement proof';
+  String difficulty = 'Normal';
+  String fallbackQuest = 'Shake';
+  String repeatRhythm = 'Weekdays';
+  String wakeJolt = 'Hero trailer';
+  String escapeRule = 'Filler costs a chapter';
+
+  String get arcShort => arc.replaceAll(' Arc', '').toUpperCase();
+  String get openingSetupLine => '$arcShort · ${rival.toUpperCase()}';
+  String get questReceipt =>
+      '$quest · ${proof.replaceAll(' proof', '')} · $difficulty';
 
   void setUserName(String name) {
     if (name.trim().isEmpty) return;

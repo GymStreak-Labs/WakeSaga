@@ -31,7 +31,7 @@ class _WakeQuestState extends State<WakeQuest> {
     defaultValue: 20,
   );
 
-  late String _mode; // 'Get Up' | 'Sky Photo' | 'Shake'.
+  late String _mode; // First-run Wake Quest label.
   int _count = 0;
   int _fails = 0;
   bool _verified = false;
@@ -57,7 +57,18 @@ class _WakeQuestState extends State<WakeQuest> {
   String get _instruction => switch (_mode) {
     'Sky Photo' => 'PHOTOGRAPH THE SKY',
     'Shake' => '20 SHAKES. GO.',
+    'Object Hunt' => 'FIND THE OBJECT',
+    'Water Check' => 'DRINK WATER',
+    'Desk Ready' => 'SHOW YOUR DESK',
     _ => 'STAND UP. TAP 20.',
+  };
+
+  String get _simHint => switch (_mode) {
+    'Shake' => 'tap = one shake (simulated)',
+    'Object Hunt' => 'tap = object found (simulated)',
+    'Water Check' => 'tap = water check (simulated)',
+    'Desk Ready' => 'tap = desk proof (simulated)',
+    _ => 'tap = one step (simulated)',
   };
 
   void _increment() {
@@ -128,9 +139,7 @@ class _WakeQuestState extends State<WakeQuest> {
                             count: _count,
                             target: target,
                             verified: _verified,
-                            hint: _mode == 'Shake'
-                                ? 'tap = one shake (simulated)'
-                                : 'tap = one step (simulated)',
+                            hint: _simHint,
                             onTap: _increment,
                           ),
                   ),

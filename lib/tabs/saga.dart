@@ -378,10 +378,11 @@ class _RivalLog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final taunts = [
-      '"${state.userName}. ${state.alarmLabel} again tomorrow. '
-          "I'll be up at 5.\"",
+      '"${state.userName}. ${state.rival} is waiting at '
+          '${state.alarmLabel}. Try not to make it interesting."',
+      '"${state.stake} is on the line. ${state.quest} first, then the scene."',
       '"You bought nine minutes on episode 11. I counted."',
-      '"Arc ${state.arcNumber} already? Try to keep it interesting."',
+      '"${state.arc} already? Keep the opening canon."',
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

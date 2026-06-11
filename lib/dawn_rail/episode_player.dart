@@ -41,9 +41,9 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
         : state.missionText;
     _lines = [
       '${state.userName}. Episode $ep. You actually stood up.',
-      'Yesterday is filed. Today is being written.',
+      '${state.rival} tried to keep the opening scene.',
       'The mission: $mission.',
-      'Nobody is coming to do it for you.',
+      '${state.quest} is cleared. ${state.wakeJolt} is live.',
       'Go. The episode is live.',
     ];
     _armTicker();
@@ -81,9 +81,7 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
       Navigator.of(context).pop();
       return;
     }
-    Navigator.of(context).push(
-      hardCut(const SmashCutFlash(child: CardMint())),
-    );
+    Navigator.of(context).push(hardCut(const SmashCutFlash(child: CardMint())));
   }
 
   @override
@@ -122,8 +120,8 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
                             opacity: i == _current
                                 ? 1
                                 : i < _current
-                                    ? 0.35
-                                    : 0.12,
+                                ? 0.35
+                                : 0.12,
                           ),
                         ),
                     ],
@@ -258,8 +256,9 @@ class _NarratorBlock extends StatelessWidget {
                         width: 3,
                         height: playing ? (6 + (i * 7) % 18).toDouble() : 4,
                         margin: const EdgeInsets.only(right: 3),
-                        color: InkSignal.paper
-                            .withValues(alpha: playing ? 0.7 : 0.25),
+                        color: InkSignal.paper.withValues(
+                          alpha: playing ? 0.7 : 0.25,
+                        ),
                       ),
                   ],
                 ),
