@@ -70,6 +70,42 @@ class _DawnTakeoverState extends State<DawnTakeover>
                 size: 19,
               ),
             ),
+            const SizedBox(height: 22),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: InkSignal.panel(color: const Color(0xFF10141D)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'MISSION',
+                      style: InkSignal.mono(
+                        11,
+                        color: InkSignal.paper.withValues(alpha: 0.45),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      state.missionText.isEmpty
+                          ? 'Stand up before the scene ends.'
+                          : state.missionText,
+                      style: InkSignal.ui(18, weight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'WAKE QUEST · ${state.quest.toUpperCase()}',
+                      style: InkSignal.mono(
+                        12,
+                        color: InkSignal.paper.withValues(alpha: 0.62),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const Spacer(),
             // Bottom 45%: thumb-reachable from a pillow.
             SizedBox(
@@ -81,7 +117,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
                   children: [
                     // The one crimson element on this screen.
                     SlabButton(
-                      'BEGIN QUEST',
+                      'CLEAR ${state.quest}',
                       key: const Key('beginQuest'),
                       onTap: _beginQuest,
                       height: 88,

@@ -26,7 +26,10 @@ class WakeQuest extends StatefulWidget {
 }
 
 class _WakeQuestState extends State<WakeQuest> {
-  static const int target = 20;
+  static const int target = int.fromEnvironment(
+    'WAKE_SAGA_QUEST_TARGET',
+    defaultValue: 20,
+  );
 
   late String _mode; // 'Get Up' | 'Sky Photo' | 'Shake'.
   int _count = 0;
@@ -52,10 +55,10 @@ class _WakeQuestState extends State<WakeQuest> {
   }
 
   String get _instruction => switch (_mode) {
-        'Sky Photo' => 'PHOTOGRAPH THE SKY',
-        'Shake' => '20 SHAKES. GO.',
-        _ => 'STAND UP. TAP 20.',
-      };
+    'Sky Photo' => 'PHOTOGRAPH THE SKY',
+    'Shake' => '20 SHAKES. GO.',
+    _ => 'STAND UP. TAP 20.',
+  };
 
   void _increment() {
     if (_verified) return;
@@ -71,9 +74,9 @@ class _WakeQuestState extends State<WakeQuest> {
     // Brief verify-green beat, then the smash cut IS the confirmation.
     _advanceTimer = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      Navigator.of(context).push(
-        hardCut(const SmashCutFlash(child: TitleCardSlam())),
-      );
+      Navigator.of(
+        context,
+      ).push(hardCut(const SmashCutFlash(child: TitleCardSlam())));
     });
   }
 
@@ -120,10 +123,7 @@ class _WakeQuestState extends State<WakeQuest> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: _mode == 'Sky Photo'
-                        ? _Viewfinder(
-                            verified: _verified,
-                            onShutter: _succeed,
-                          )
+                        ? _Viewfinder(verified: _verified, onShutter: _succeed)
                         : _CounterRing(
                             count: _count,
                             target: target,
@@ -241,17 +241,14 @@ class _CounterRing extends StatelessWidget {
               child: CustomPaint(
                 painter: _RingPainter(
                   progress: count / target,
-                  color:
-                      verified ? InkSignal.verifyGreen : InkSignal.crimson,
+                  color: verified ? InkSignal.verifyGreen : InkSignal.crimson,
                 ),
                 child: Center(
                   child: Text(
                     verified ? 'GO' : '$count/$target',
                     style: InkSignal.display(
                       verified ? 110 : 84,
-                      color: verified
-                          ? InkSignal.verifyGreen
-                          : InkSignal.paper,
+                      color: verified ? InkSignal.verifyGreen : InkSignal.paper,
                     ),
                   ),
                 ),
@@ -325,16 +322,15 @@ class _Viewfinder extends StatelessWidget {
               width: double.infinity,
               decoration: InkSignal.panel(
                 color: const Color(0xFF10141D),
-                borderColor:
-                    verified ? InkSignal.verifyGreen : InkSignal.inkBorder,
+                borderColor: verified
+                    ? InkSignal.verifyGreen
+                    : InkSignal.inkBorder,
               ),
               clipBehavior: Clip.antiAlias,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  const CustomPaint(
-                    painter: ScreentonePainter(opacity: 0.06),
-                  ),
+                  const CustomPaint(painter: ScreentonePainter(opacity: 0.06)),
                   Center(
                     child: Text(
                       verified
@@ -366,8 +362,7 @@ class _Viewfinder extends StatelessWidget {
                   height: 84,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        verified ? InkSignal.verifyGreen : InkSignal.crimson,
+                    color: verified ? InkSignal.verifyGreen : InkSignal.crimson,
                     border: Border.all(color: InkSignal.paper, width: 3),
                   ),
                 ),

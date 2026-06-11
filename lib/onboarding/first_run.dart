@@ -74,17 +74,24 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     'identity': 'I hit snooze',
     'firstAlarm': 'I negotiate',
     'backup': '2-3 alarms',
+    'cost': 'Late start',
     'thief': 'Phone scroll',
+    'gain': 'Study block',
     'nightFeeling': 'Hopeful',
     'wakeFeeling': 'Foggy',
+    'humanAfter': '15 minutes',
     'arc': 'Study Arc',
+    'stake': 'Grades',
     'rival': 'Phone vortex',
     'narrator': 'Mentor',
     'intensity': 'Light',
     'quest': 'Get Up',
+    'questPlace': 'Across the room',
     'proof': 'Movement proof',
     'difficulty': 'Normal',
+    'fallbackQuest': 'Shake',
     'repeat': 'Weekdays',
+    'jolt': 'Hero trailer',
     'behavior': 'Filler costs a chapter',
     'permission': 'I understand',
     'commitment': 'Sign Episode 1',
@@ -141,8 +148,8 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.choice,
       field: 'backup',
       kicker: 'ALARM STACK',
-      title: 'How many backups do you set?',
-      body: 'WakeSaga is built to replace the chaos with one clear sequence.',
+      title: 'How chaotic is your alarm stack?',
+      body: 'This tells WakeSaga how much structure the Cold Open needs.',
       choices: [
         _Choice('1 alarm'),
         _Choice('2-3 alarms'),
@@ -180,7 +187,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.choice,
       field: 'gain',
       kicker: 'REWARD PREVIEW',
-      title: 'If WakeSaga buys back 15 minutes, where do they go?',
+      title: 'If WakeSaga wins back 15 minutes, where do they go?',
       body: 'The app should pull you toward something specific.',
       choices: [
         _Choice('Gym warmup'),
@@ -1189,6 +1196,22 @@ class _EducationStep extends StatelessWidget {
 
   final _OnboardingStep step;
 
+  String get _label => switch (step.kicker) {
+    'PAYOFF' => 'RIVAL FILE',
+    'SLEEP INERTIA' => 'BODY NOTE',
+    'OLD LOOP' => 'LOOP BREAK',
+    'SAGA LOOP' => 'NEW LOOP',
+    'ONE RULE' => 'ALARM RULE',
+    'TITLE CARD' => 'REWARD RULE',
+    'VOICE SAMPLE' => 'VOICE TEST',
+    'WAKE QUEST' => 'QUEST RULE',
+    'NO TRAPS' => 'SAFETY RULE',
+    'KNOCKDOWNS' => 'CANON RULE',
+    'PERMISSION PRIMER' => 'ACCESS NOTE',
+    'REVIEW' => 'FINAL CHECK',
+    _ => 'CANON NOTE',
+  };
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -1206,11 +1229,9 @@ class _EducationStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SkewedDisplay(
-                  'CANON NOTE',
-                  size: 34,
-                  textAlign: TextAlign.left,
-                ),
+                // The panel label changes by beat so the long flow does
+                // not feel like the same note card repeating.
+                SkewedDisplay(_label, size: 34, textAlign: TextAlign.left),
                 const SizedBox(height: 16),
                 Text(
                   step.body,

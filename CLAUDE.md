@@ -10,8 +10,8 @@ WakeSaga is a GymStreak Labs app that turns the morning alarm into the start of 
 - End Credits: nightly reflection and tomorrow's mission setup.
 
 ## Tech Stack
-- **Framework**: Flutter (planned)
-- **Platform**: iOS + Android
+- **Framework**: Flutter prototype
+- **Platform**: iOS + Android planned
 - **AI Audio**: Gemini/Flash TTS pipeline (planned)
 
 ## Project Structure
@@ -39,6 +39,8 @@ flutter test tmp/cold_open_capture_test.dart --update-goldens   # screen capture
   `InkSignal.tabBarClearance` at the bottom of every tab body.
 - Today's DBG CLOCK row renders only in debug builds (`kDebugMode`).
 - Preview env flags: WAKE_SAGA_PREVIEW_MAIN_APP / _TAB / _BAND, WAKE_SAGA_SHOW_RING_NOW.
+- Simulator proof flag: WAKE_SAGA_QUEST_TARGET lowers the simulated Wake
+  Quest tap count for recordings only; default remains 20.
 
 ## Environment Variables / Credentials
 Use Mission Control vault workflows only. Do not store plaintext secrets in repo files.

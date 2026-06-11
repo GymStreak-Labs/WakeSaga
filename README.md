@@ -1,15 +1,22 @@
 # WakeSaga
 
-WakeSaga is a Flutter prototype for a cinematic AI alarm clock that turns the morning alarm into the start of a daily training arc.
+WakeSaga is a Flutter prototype for a cinematic AI alarm clock that turns the
+morning alarm into the cold open of a daily anime-style training arc.
 
 ## Current Prototype
 
-- Wayk-length Episode 001 Builder onboarding with morning diagnosis, education interstitials, saga personalization, Wake Quest setup, plan reveal, and mock monetization beats.
-- Tonight setup for tomorrow's mission.
-- Alarm preview with a cached wake-up jolt placeholder and configurable Wake Quest missions.
-- Morning Episode player with generated script copy, unlocked after the Wake Quest is cleared.
-- Lock In clip generator for short motivation moments.
-- Episode Cards and End Credits reflection loop.
+- Long Cold Open onboarding with morning diagnosis, education interstitials,
+  saga personalization, Wake Quest setup, plan reveal, receipt preview, and mock
+  monetization beats.
+- Today/Saga/Cast app shell for the awake user.
+- Simulated Dawn Rail: alarm takeover -> Wake Quest -> Title Card Slam ->
+  Morning Episode -> Wake Card.
+- Simulated Lock In moments for short motivation.
+- Episode cards, post-miss comeback framing, and End Credits-style setup.
+
+The current build is prototype-only: native alarm scheduling, Gemini/Flash TTS,
+real Wake Quest verification, persistence, purchases, and share/export are not
+production-wired yet.
 
 ## Development
 

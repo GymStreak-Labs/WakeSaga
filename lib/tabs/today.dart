@@ -31,6 +31,16 @@ class _TodayTabState extends State<TodayTab>
     vsync: this,
     duration: const Duration(seconds: 4),
   )..repeat(reverse: true);
+  bool _missionHydrated = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_missionHydrated) {
+      _missionField.text = AppScope.of(context).missionText;
+      _missionHydrated = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -45,6 +55,38 @@ class _TodayTabState extends State<TodayTab>
       context,
       rootNavigator: true,
     ).push(hardCut(const SmashCutFlash(child: DawnTakeover())));
+  }
+
+  void _lockTomorrow(AppState state) {
+    HapticFeedback.mediumImpact();
+    state
+      ..setMission(_missionField.text)
+      ..setAlarm(enabled: true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(milliseconds: 900),
+        backgroundColor: InkSignal.surface,
+        content: Text(
+          'Episode ${state.nextEpisode} locked for ${state.alarmLabel}.',
+          style: InkSignal.ui(15, weight: FontWeight.w700),
+        ),
+      ),
+    );
+  }
+
+  void _armComeback(AppState state) {
+    HapticFeedback.heavyImpact();
+    state.setAlarm(enabled: true, questType: 'Get Up');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(milliseconds: 900),
+        backgroundColor: InkSignal.surface,
+        content: Text(
+          'Comeback quest armed for ${state.alarmLabel}.',
+          style: InkSignal.ui(15, weight: FontWeight.w700),
+        ),
+      ),
+    );
   }
 
   void _openAlarmSheet() {
@@ -306,7 +348,7 @@ class _TodayTabState extends State<TodayTab>
           ),
           // Anchor 2: LOCK IN is always reachable. Compact pill in
           // non-day states (the screen's one crimson element).
-          if (band != TodayBand.day)
+          if (band == TodayBand.morning)
             Positioned(
               right: 16,
               bottom: InkSignal.tabBarClearance + 8,
@@ -497,6 +539,8 @@ class _TodayTabState extends State<TodayTab>
                 : state.missionText,
             style: InkSignal.ui(22, weight: FontWeight.w700),
           ),
+          const SizedBox(height: 20),
+          const _LoopRail(activeIndex: 4),
           const Spacer(),
           if (card != null)
             Row(
@@ -593,6 +637,8 @@ class _TodayTabState extends State<TodayTab>
             ),
           ),
           const Spacer(),
+          const _LoopRail(activeIndex: 5),
+          const SizedBox(height: 12),
           // Next-scene strip: the daily loop always points at tonight.
           Container(
             padding: const EdgeInsets.all(14),
@@ -762,6 +808,14 @@ class _TodayTabState extends State<TodayTab>
             color: InkSignal.paper.withValues(alpha: 0.85),
             textAlign: TextAlign.left,
           ),
+          const SizedBox(height: 20),
+          const _LoopRail(activeIndex: 0),
+          const SizedBox(height: 18),
+          SlabButton(
+            "LOCK TOMORROW'S COLD OPEN",
+            key: const Key('lockTomorrow'),
+            onTap: () => _lockTomorrow(state),
+          ),
           const SizedBox(height: 24),
         ],
       ),
@@ -823,7 +877,14 @@ class _TodayTabState extends State<TodayTab>
               ),
             ),
           ),
+          const SizedBox(height: 22),
+          const _LoopRail(activeIndex: 0),
           const Spacer(),
+          SlabButton(
+            'ARM COMEBACK QUEST',
+            key: const Key('armComeback'),
+            onTap: () => _armComeback(state),
+          ),
         ],
       ),
     );
@@ -914,6 +975,71 @@ class _Stamp extends StatelessWidget {
           letterSpacing: 1,
           color: active ? color : InkSignal.paper.withValues(alpha: 0.35),
         ),
+      ),
+    );
+  }
+}
+
+class _LoopRail extends StatelessWidget {
+  const _LoopRail({required this.activeIndex});
+
+  final int activeIndex;
+
+  static const _steps = ['Alarm', 'Quest', 'Title', 'Episode', 'Card', 'Next'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: InkSignal.panel(color: InkSignal.base),
+      child: Row(
+        children: [
+          for (var i = 0; i < _steps.length; i++) ...[
+            Expanded(
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: i <= activeIndex
+                          ? InkSignal.paper
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: i <= activeIndex
+                            ? InkSignal.paper
+                            : InkSignal.inkBorder,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _steps[i].toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: InkSignal.mono(
+                      9,
+                      color: i == activeIndex
+                          ? InkSignal.paper
+                          : InkSignal.paper.withValues(alpha: 0.38),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (i != _steps.length - 1)
+              Container(
+                width: 10,
+                height: 2,
+                color: i < activeIndex
+                    ? InkSignal.paper.withValues(alpha: 0.7)
+                    : InkSignal.inkBorder,
+              ),
+          ],
+        ],
       ),
     );
   }
