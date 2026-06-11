@@ -148,7 +148,16 @@ class _WakeQuestState extends State<WakeQuest> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _QuestProtocol(
+                      verified: _verified,
+                      count: _count,
+                      target: target,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Expanded(
                     child: _mode == 'Sky Photo'
                         ? _Viewfinder(verified: _verified, onShutter: _succeed)
@@ -231,6 +240,104 @@ class _WakeQuestState extends State<WakeQuest> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _QuestProtocol extends StatelessWidget {
+  const _QuestProtocol({
+    required this.verified,
+    required this.count,
+    required this.target,
+  });
+
+  final bool verified;
+  final int count;
+  final int target;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (count / target).clamp(0.0, 1.0);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: InkSignal.panel(color: const Color(0xFF0D1017)),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _ProtocolStep(
+                  label: 'DO QUEST',
+                  active: !verified,
+                  complete: verified || count > 0,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _ProtocolStep(
+                  label: 'VERIFY',
+                  active: !verified && count > 0,
+                  complete: verified,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _ProtocolStep(
+                  label: 'ALARM OFF',
+                  active: verified,
+                  complete: verified,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              minHeight: 5,
+              value: verified ? 1 : progress,
+              backgroundColor: InkSignal.inkBorder,
+              valueColor: AlwaysStoppedAnimation(
+                verified ? InkSignal.verifyGreen : InkSignal.crimson,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProtocolStep extends StatelessWidget {
+  const _ProtocolStep({
+    required this.label,
+    required this.active,
+    required this.complete,
+  });
+
+  final String label;
+  final bool active;
+  final bool complete;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = complete
+        ? InkSignal.verifyGreen
+        : active
+        ? InkSignal.crimson
+        : InkSignal.paper.withValues(alpha: 0.24);
+    return Container(
+      height: 38,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: complete ? 0.16 : 0.08),
+        border: Border.all(color: color.withValues(alpha: 0.82), width: 1.5),
+        borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(label, style: InkSignal.mono(10, color: color)),
       ),
     );
   }
