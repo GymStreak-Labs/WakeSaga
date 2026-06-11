@@ -23,7 +23,7 @@ void main() {
     expect(find.text('EPISODE 0'), findsOneWidget);
 
     var stepsCleared = 1;
-    while (find.byKey(const Key('beginButton')).evaluate().isEmpty &&
+    while (find.text('Is this your kind of alarm?').evaluate().isEmpty &&
         stepsCleared < 60) {
       final next = find.byKey(Key('onboardingNext$stepsCleared'));
       expect(next, findsOneWidget);
@@ -34,6 +34,12 @@ void main() {
 
     expect(stepsCleared, greaterThanOrEqualTo(35));
     expect(find.text('Is this your kind of alarm?'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('ratingMaybeLater')));
+    await tester.pump(const Duration(milliseconds: 900));
+
+    expect(find.text('UNLOCK THE FULL\nCOLD OPEN'), findsOneWidget);
+    expect(find.text('SPECIAL OFFER'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('beginButton')));
     await tester.pump(const Duration(seconds: 2));

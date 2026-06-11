@@ -19,6 +19,7 @@ enum _StepKind {
   render,
   reveal,
   rating,
+  paywall,
 }
 
 enum _StepTransition { soft, crimson, slam }
@@ -559,6 +560,13 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       body:
           'If the Cold Open feels better than another snooze button, tell the store.',
     ),
+    _OnboardingStep(
+      kind: _StepKind.paywall,
+      entryTransition: _StepTransition.slam,
+      kicker: 'PROTAGONIST PASS',
+      title: 'Unlock the full Cold Open.',
+      body: 'Full voices, daily episodes, unlimited Lock Ins, and foil cards.',
+    ),
   ];
 
   @override
@@ -576,7 +584,12 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     if (_isTransitioning || _isFinishing) return;
     if (_index == _steps.length - 1) {
       HapticFeedback.heavyImpact();
-      unawaited(_finishWithRatingRequest());
+      _finish();
+      return;
+    }
+    if (_step.kind == _StepKind.rating) {
+      HapticFeedback.heavyImpact();
+      unawaited(_requestRatingThenContinue());
       return;
     }
     final transition = _steps[_index + 1].entryTransition;
@@ -647,7 +660,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     );
   }
 
-  Future<void> _finishWithRatingRequest() async {
+  Future<void> _requestRatingThenContinue() async {
     setState(() => _isFinishing = true);
     try {
       final inAppReview = InAppReview.instance;
@@ -666,100 +679,109 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       // simulator/debug. The onboarding gate must never block completion.
     }
     if (!mounted) return;
-    _finish();
+    setState(() => _isFinishing = false);
+    _stagePageChange(1);
   }
 
-  void _finishWithoutRating() {
+  void _continueWithoutRating() {
     if (_isFinishing) return;
     HapticFeedback.selectionClick();
-    _finish();
+    _stagePageChange(1);
   }
 
   @override
   Widget build(BuildContext context) {
     final step = _step;
-    return Scaffold(
-      backgroundColor: InkSignal.base,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          const CustomPaint(painter: ScreentonePainter(opacity: 0.035)),
-          SafeArea(
-            child: Column(
-              children: [
-                _TopBar(
-                  index: _index,
-                  total: _steps.length,
-                  progress: _progress,
-                  onBack: _index == 0 ? null : _back,
-                ),
-                Expanded(
-                  child: TweenAnimationBuilder<double>(
-                    key: ValueKey(_index),
-                    tween: Tween(begin: 0, end: 1),
-                    duration: Duration(
-                      milliseconds: _activeTransition == _StepTransition.soft
-                          ? 280
-                          : 120,
+    final isPaywall = step.kind == _StepKind.paywall;
+    return PopScope(
+      canPop: !isPaywall,
+      child: Scaffold(
+        backgroundColor: InkSignal.base,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const CustomPaint(painter: ScreentonePainter(opacity: 0.035)),
+            SafeArea(
+              child: Column(
+                children: [
+                  if (!isPaywall)
+                    _TopBar(
+                      index: _index,
+                      total: _steps.length,
+                      progress: _progress,
+                      onBack: _index == 0 ? null : _back,
                     ),
-                    curve: Curves.easeOutCubic,
-                    child: _StepBody(
-                      step: step,
-                      picked: _picked,
-                      nameController: _nameController,
-                      missionController: _missionController,
-                      answers: _answers,
-                      onSelect: _select,
-                      onTimeChanged: (value) => setState(() => _picked = value),
-                      onContinueWithoutRating: _finishWithoutRating,
-                    ),
-                    builder: (context, value, child) {
-                      if (_activeTransition != _StepTransition.soft) {
-                        return child!;
-                      }
-                      return Opacity(
-                        opacity: value,
-                        child: Transform.translate(
-                          offset: Offset(
-                            (1 - value) * 32 * _transitionDirection.toDouble(),
-                            (1 - value) * 10,
+                  Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      key: ValueKey(_index),
+                      tween: Tween(begin: 0, end: 1),
+                      duration: Duration(
+                        milliseconds: _activeTransition == _StepTransition.soft
+                            ? 280
+                            : 120,
+                      ),
+                      curve: Curves.easeOutCubic,
+                      child: _StepBody(
+                        step: step,
+                        picked: _picked,
+                        nameController: _nameController,
+                        missionController: _missionController,
+                        answers: _answers,
+                        onSelect: _select,
+                        onTimeChanged: (value) =>
+                            setState(() => _picked = value),
+                        onContinueWithoutRating: _continueWithoutRating,
+                        onSubscribe: _finish,
+                      ),
+                      builder: (context, value, child) {
+                        if (_activeTransition != _StepTransition.soft) {
+                          return child!;
+                        }
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(
+                              (1 - value) *
+                                  32 *
+                                  _transitionDirection.toDouble(),
+                              (1 - value) * 10,
+                            ),
+                            child: child,
                           ),
-                          child: child,
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
-                  child: SlabButton(
-                    _index == _steps.length - 1
-                        ? 'Rate WakeSaga'
-                        : step.kind == _StepKind.coldOpen
-                        ? 'Roll Episode 0'
-                        : 'Continue',
-                    key: _index == _steps.length - 1
-                        ? const Key('beginButton')
-                        : Key('onboardingNext$_index'),
-                    color: _index == _steps.length - 2
-                        ? InkSignal.gold
-                        : InkSignal.crimson,
-                    textColor: _index == _steps.length - 2
-                        ? Colors.black
-                        : Colors.white,
-                    onTap: _next,
-                  ),
-                ),
-              ],
+                  if (!isPaywall)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+                      child: SlabButton(
+                        step.kind == _StepKind.rating
+                            ? 'Rate WakeSaga'
+                            : step.kind == _StepKind.coldOpen
+                            ? 'Roll Episode 0'
+                            : 'Continue',
+                        key: Key('onboardingNext$_index'),
+                        color: step.kind == _StepKind.reveal
+                            ? InkSignal.gold
+                            : InkSignal.crimson,
+                        textColor: step.kind == _StepKind.reveal
+                            ? Colors.black
+                            : Colors.white,
+                        onTap: _next,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (_isTransitioning && _activeTransition != _StepTransition.soft)
-            _CrimsonSwipe(
-              key: ValueKey(_transitionTick),
-              direction: _transitionDirection,
-              slam: _activeTransition == _StepTransition.slam,
-            ),
-        ],
+            if (_isTransitioning && _activeTransition != _StepTransition.soft)
+              _CrimsonSwipe(
+                key: ValueKey(_transitionTick),
+                direction: _transitionDirection,
+                slam: _activeTransition == _StepTransition.slam,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -992,6 +1014,7 @@ class _StepBody extends StatelessWidget {
     required this.onSelect,
     required this.onTimeChanged,
     required this.onContinueWithoutRating,
+    required this.onSubscribe,
   });
 
   final _OnboardingStep step;
@@ -1002,9 +1025,13 @@ class _StepBody extends StatelessWidget {
   final void Function(String field, String value) onSelect;
   final ValueChanged<DateTime> onTimeChanged;
   final VoidCallback onContinueWithoutRating;
+  final VoidCallback onSubscribe;
 
   @override
   Widget build(BuildContext context) {
+    if (step.kind == _StepKind.paywall) {
+      return _HardPaywallStep(onSubscribe: onSubscribe);
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
       child: switch (step.kind) {
@@ -1037,6 +1064,7 @@ class _StepBody extends StatelessWidget {
           step: step,
           onContinueWithoutRating: onContinueWithoutRating,
         ),
+        _StepKind.paywall => const SizedBox.shrink(),
       },
     );
   }
@@ -1671,6 +1699,593 @@ class _RatingStep extends StatelessWidget {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _HardPaywallStep extends StatefulWidget {
+  const _HardPaywallStep({required this.onSubscribe});
+
+  final VoidCallback onSubscribe;
+
+  @override
+  State<_HardPaywallStep> createState() => _HardPaywallStepState();
+}
+
+class _HardPaywallStepState extends State<_HardPaywallStep> {
+  int _selectedPlan = 0; // 0 = special offer, 1 = annual trial, 2 = weekly.
+  int _secondsLeft = 15 * 60;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _secondsLeft == 0) return;
+      setState(() => _secondsLeft--);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String get _timerLabel {
+    final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  String get _ctaLabel => switch (_selectedPlan) {
+    0 => 'Activate Offer',
+    1 => 'Start 7-Day Free Trial',
+    _ => 'Start Weekly',
+  };
+
+  void _selectPlan(int plan) {
+    HapticFeedback.selectionClick();
+    setState(() => _selectedPlan = plan);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0, -0.92),
+                radius: 1.12,
+                colors: [Color(0xFF25111A), InkSignal.base],
+              ),
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(20, 18, 20, 112 + bottomPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('PROTAGONIST PASS', style: InkSignal.mono(12)),
+              const SizedBox(height: 12),
+              const SkewedDisplay(
+                'UNLOCK THE FULL\nCOLD OPEN',
+                size: 36,
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Episode 1 is staged. Protagonist Pass unlocks the voices, '
+                'daily AI episodes, Lock Ins, and foil Wake Cards.',
+                style: InkSignal.ui(
+                  17,
+                  color: InkSignal.paper.withValues(alpha: 0.68),
+                  weight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _PaywallProofStrip(),
+              const SizedBox(height: 16),
+              _SpecialOfferCard(
+                selected: _selectedPlan == 0,
+                timerLabel: _timerLabel,
+                onTap: () => _selectPlan(0),
+              ),
+              const SizedBox(height: 10),
+              _StandardPlanCard(
+                key: const Key('planAnnual'),
+                selected: _selectedPlan == 1,
+                title: 'Annual',
+                price: r'$59.99',
+                period: '/year',
+                subtitle: r'Just $5.00/mo',
+                banner: '7-DAY FREE TRIAL',
+                onTap: () => _selectPlan(1),
+              ),
+              const SizedBox(height: 10),
+              _StandardPlanCard(
+                key: const Key('planWeekly'),
+                selected: _selectedPlan == 2,
+                title: 'Weekly',
+                price: r'$9.99',
+                period: '/week',
+                subtitle: 'Flexible pilot pass',
+                onTap: () => _selectPlan(2),
+              ),
+              const SizedBox(height: 18),
+              _PaywallDivider(),
+              const SizedBox(height: 14),
+              for (final feature in const [
+                (
+                  'Personalized AI wake episodes',
+                  'Daily narrator scripts with callbacks to your real mornings.',
+                ),
+                (
+                  'Full cast + custom arcs',
+                  'Rival, Captain, Quiet Senior, recovery tone, and more.',
+                ),
+                (
+                  'Unlimited Lock Ins',
+                  'Generate short focus clips for study, gym, work, or reset.',
+                ),
+                (
+                  'Foil Wake Cards',
+                  'Collect stronger episode cards when you beat the alarm.',
+                ),
+              ])
+                _PaywallFeature(title: feature.$1, body: feature.$2),
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  key: const Key('restorePurchases'),
+                  onPressed: () => HapticFeedback.selectionClick(),
+                  child: Text(
+                    'Restore purchases',
+                    style: InkSignal.ui(
+                      15,
+                      color: InkSignal.paper.withValues(alpha: 0.5),
+                      weight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              Text(
+                'Subscription auto-renews unless cancelled at least 24 hours '
+                'before renewal. Manage in Apple ID subscriptions.',
+                textAlign: TextAlign.center,
+                style: InkSignal.ui(
+                  12,
+                  color: InkSignal.paper.withValues(alpha: 0.34),
+                  weight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Terms', style: InkSignal.mono(11)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      '·',
+                      style: InkSignal.mono(
+                        11,
+                        color: InkSignal.paper.withValues(alpha: 0.35),
+                      ),
+                    ),
+                  ),
+                  Text('Privacy', style: InkSignal.mono(11)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            padding: EdgeInsets.fromLTRB(20, 18, 20, bottomPadding + 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  InkSignal.base.withValues(alpha: 0),
+                  InkSignal.base.withValues(alpha: 0.94),
+                  InkSignal.base,
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_selectedPlan == 1) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        size: 16,
+                        color: InkSignal.verifyGreen,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'No payment now',
+                        style: InkSignal.ui(
+                          13,
+                          color: InkSignal.verifyGreen,
+                          weight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                SlabButton(
+                  _ctaLabel,
+                  key: const Key('beginButton'),
+                  onTap: widget.onSubscribe,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaywallProofStrip extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: InkSignal.panel(),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ProofStat(label: 'EP 1', value: 'READY'),
+          ),
+          Container(width: 1, height: 38, color: InkSignal.inkBorder),
+          Expanded(
+            child: _ProofStat(label: 'QUEST', value: 'STAGED'),
+          ),
+          Container(width: 1, height: 38, color: InkSignal.inkBorder),
+          Expanded(
+            child: _ProofStat(label: 'VOICE', value: 'LOCKED'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProofStat extends StatelessWidget {
+  const _ProofStat({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: InkSignal.mono(
+            10,
+            color: InkSignal.paper.withValues(alpha: 0.42),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(value, style: InkSignal.ui(14, weight: FontWeight.w900)),
+      ],
+    );
+  }
+}
+
+class _SpecialOfferCard extends StatelessWidget {
+  const _SpecialOfferCard({
+    required this.selected,
+    required this.timerLabel,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final String timerLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: const Key('planSpecial'),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: InkSignal.panel(
+          color: InkSignal.surface,
+          borderColor: selected ? InkSignal.crimson : InkSignal.inkBorder,
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: const BoxDecoration(
+                color: InkSignal.crimson,
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(InkSignal.panelRadius - 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'SPECIAL OFFER',
+                    style: InkSignal.mono(11, color: Colors.white),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    color: InkSignal.paper,
+                    child: Text(
+                      'SAVE 50%',
+                      style: InkSignal.mono(9, color: InkSignal.base),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  _PlanCheck(selected: selected),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Pilot Season Offer', style: InkSignal.ui(18)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Reserved for $timerLabel · Just \$2.50/mo',
+                          style: InkSignal.ui(
+                            13,
+                            color: InkSignal.paper.withValues(alpha: 0.56),
+                            weight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        r'$59.99',
+                        style: InkSignal.ui(
+                          12,
+                          color: InkSignal.paper.withValues(alpha: 0.34),
+                          weight: FontWeight.w700,
+                        ).copyWith(decoration: TextDecoration.lineThrough),
+                      ),
+                      Text(
+                        r'$29.99',
+                        style: InkSignal.ui(22, weight: FontWeight.w900),
+                      ),
+                      Text(
+                        '/year',
+                        style: InkSignal.ui(
+                          12,
+                          color: InkSignal.paper.withValues(alpha: 0.48),
+                          weight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StandardPlanCard extends StatelessWidget {
+  const _StandardPlanCard({
+    super.key,
+    required this.selected,
+    required this.title,
+    required this.price,
+    required this.period,
+    required this.subtitle,
+    required this.onTap,
+    this.banner,
+  });
+
+  final bool selected;
+  final String title;
+  final String price;
+  final String period;
+  final String subtitle;
+  final VoidCallback onTap;
+  final String? banner;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: InkSignal.panel(
+          color: InkSignal.surface,
+          borderColor: selected ? InkSignal.paper : InkSignal.inkBorder,
+        ),
+        child: Column(
+          children: [
+            if (banner != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                decoration: BoxDecoration(
+                  color: InkSignal.paper.withValues(alpha: 0.08),
+                  border: const Border(
+                    bottom: BorderSide(color: InkSignal.inkBorder),
+                  ),
+                ),
+                child: Text(
+                  banner!,
+                  textAlign: TextAlign.center,
+                  style: InkSignal.mono(
+                    10,
+                    color: InkSignal.paper.withValues(alpha: 0.72),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  _PlanCheck(selected: selected),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: InkSignal.ui(18)),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: InkSignal.ui(
+                            13,
+                            color: InkSignal.paper.withValues(alpha: 0.54),
+                            weight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        price,
+                        style: InkSignal.ui(20, weight: FontWeight.w900),
+                      ),
+                      Text(
+                        period,
+                        style: InkSignal.ui(
+                          12,
+                          color: InkSignal.paper.withValues(alpha: 0.48),
+                          weight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanCheck extends StatelessWidget {
+  const _PlanCheck({required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: selected ? InkSignal.crimson : InkSignal.paper,
+          width: selected ? 2.5 : 1.5,
+        ),
+      ),
+      child: selected
+          ? const Icon(Icons.check, size: 15, color: InkSignal.crimson)
+          : null,
+    );
+  }
+}
+
+class _PaywallDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: InkSignal.inkBorder)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'WHAT YOU GET',
+            style: InkSignal.mono(
+              10,
+              color: InkSignal.paper.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        Expanded(child: Container(height: 1, color: InkSignal.inkBorder)),
+      ],
+    );
+  }
+}
+
+class _PaywallFeature extends StatelessWidget {
+  const _PaywallFeature({required this.title, required this.body});
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.bolt, size: 18, color: InkSignal.crimson),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: InkSignal.ui(16, weight: FontWeight.w900)),
+                const SizedBox(height: 2),
+                Text(
+                  body,
+                  style: InkSignal.ui(
+                    13,
+                    color: InkSignal.paper.withValues(alpha: 0.58),
+                    weight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
