@@ -555,9 +555,9 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     _OnboardingStep(
       kind: _StepKind.rating,
       kicker: 'QUICK CHECK',
-      title: 'Is this opening scene your vibe?',
+      title: 'Is this your kind of alarm?',
       body:
-          'If WakeSaga feels like it could change your morning, a quick rating helps the pilot season survive.',
+          'If the Cold Open feels better than another snooze button, tell the store.',
     ),
   ];
 
@@ -734,7 +734,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
                   child: SlabButton(
                     _index == _steps.length - 1
-                        ? 'Yes, love it'
+                        ? 'Rate WakeSaga'
                         : step.kind == _StepKind.coldOpen
                         ? 'Roll Episode 0'
                         : 'Continue',
@@ -1636,9 +1636,9 @@ class _RatingStep extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Tap the crimson button if the opening scene works for you. '
-                  'iOS may show the native review sheet. If not, you still go '
-                  'straight into Today.',
+                  'Tap the crimson button to rate WakeSaga. iOS may show the '
+                  'native review sheet. If not, you still go straight into '
+                  'Today.',
                   style: InkSignal.ui(
                     18,
                     color: InkSignal.paper.withValues(alpha: 0.72),
@@ -1655,7 +1655,7 @@ class _RatingStep extends StatelessWidget {
             Expanded(
               child: _SecondaryRatingAction(
                 key: const Key('ratingMaybeLater'),
-                label: 'Maybe later',
+                label: 'Later',
                 onTap: onContinueWithoutRating,
               ),
             ),

@@ -33,7 +33,7 @@ void main() {
     }
 
     expect(stepsCleared, greaterThanOrEqualTo(35));
-    expect(find.text('Is this opening scene your vibe?'), findsOneWidget);
+    expect(find.text('Is this your kind of alarm?'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('beginButton')));
     await tester.pump(const Duration(seconds: 2));
