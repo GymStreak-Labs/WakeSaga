@@ -38,9 +38,9 @@ class _TitleCardSlamState extends State<TitleCardSlam>
 
   void _advance() {
     if (!mounted) return;
-    Navigator.of(context).push(
-      hardCut(const SmashCutFlash(child: EpisodePlayer())),
-    );
+    Navigator.of(
+      context,
+    ).push(hardCut(const SmashCutFlash(child: EpisodePlayer())));
   }
 
   @override
@@ -76,11 +76,20 @@ class _TitleCardSlamState extends State<TitleCardSlam>
                 ),
               ),
             ),
-            const CustomPaint(
-              painter: SpeedLinesPainter(opacity: 0.16),
-            ),
-            const CustomPaint(
-              painter: ScreentonePainter(opacity: 0.05),
+            const CustomPaint(painter: SpeedLinesPainter(opacity: 0.16)),
+            const CustomPaint(painter: ScreentonePainter(opacity: 0.05)),
+            Positioned(
+              left: 24,
+              right: 24,
+              top: MediaQuery.paddingOf(context).top + 28,
+              child: Text(
+                'MORNING EPISODE UNLOCKED',
+                textAlign: TextAlign.center,
+                style: InkSignal.mono(
+                  12,
+                  color: InkSignal.paper.withValues(alpha: 0.58),
+                ),
+              ),
             ),
             Center(
               child: ScaleTransition(
@@ -115,6 +124,19 @@ class _TitleCardSlamState extends State<TitleCardSlam>
                       ],
                     ),
                   ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: MediaQuery.paddingOf(context).bottom + 34,
+              child: Text(
+                'AUTO-PLAYING EPISODE',
+                textAlign: TextAlign.center,
+                style: InkSignal.mono(
+                  12,
+                  color: InkSignal.paper.withValues(alpha: 0.5),
                 ),
               ),
             ),

@@ -113,7 +113,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Alarm off -> Title Card -> Morning Episode',
+                        'Alarm off -> Title Card reveal -> Episode auto-plays',
                         style: InkSignal.mono(
                           11,
                           color: InkSignal.paper.withValues(alpha: 0.5),

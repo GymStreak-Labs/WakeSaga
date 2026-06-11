@@ -8,7 +8,7 @@ import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/cuts.dart';
 import '../widgets/screentone.dart';
-import 'title_card_slam.dart';
+import 'episode_unlock.dart';
 
 /// Dawn Rail step 2 — Wake Quest verification.
 /// One 64pt instruction (max 5 words), the sensor IS the screen.
@@ -82,12 +82,13 @@ class _WakeQuestState extends State<WakeQuest> {
     if (_verified) return;
     HapticFeedback.heavyImpact();
     setState(() => _verified = true);
-    // Brief verify-green beat, then the smash cut IS the confirmation.
-    _advanceTimer = Timer(const Duration(milliseconds: 350), () {
+    // Brief verify-green beat, then the earned unlock screen makes the reward
+    // explicit before the title card and episode playback.
+    _advanceTimer = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
       Navigator.of(
         context,
-      ).push(hardCut(const SmashCutFlash(child: TitleCardSlam())));
+      ).push(hardCut(const SmashCutFlash(child: EpisodeUnlock())));
     });
   }
 

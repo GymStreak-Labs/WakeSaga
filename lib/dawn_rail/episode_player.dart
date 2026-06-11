@@ -102,7 +102,17 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                Text(
+                  widget.replay
+                      ? 'MORNING EPISODE REPLAY'
+                      : 'MORNING EPISODE · NOW PLAYING',
+                  style: InkSignal.mono(
+                    12,
+                    color: InkSignal.paper.withValues(alpha: 0.55),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 _NarratorBlock(narrator: state.narrator, playing: _playing),
                 const SizedBox(height: 28),
                 // Subtitle list, lower-third style: current line white,

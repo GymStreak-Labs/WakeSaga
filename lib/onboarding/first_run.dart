@@ -1422,15 +1422,15 @@ class _WakeQuestProtocolCard extends StatelessWidget {
         ? const [
             ('1', 'Alarm'),
             ('2', 'Turn off'),
-            ('3', 'Title'),
-            ('4', 'Episode'),
+            ('3', 'Reveal'),
+            ('4', 'Play'),
             ('5', 'Card'),
           ]
         : const [
             ('1', 'Alarm rings'),
-            ('2', 'Turn it off with proof'),
-            ('3', 'Title Card unlocks'),
-            ('4', 'Morning Episode plays'),
+            ('2', 'Wake Quest silences it'),
+            ('3', 'Title Card reveals'),
+            ('4', 'Episode auto-plays'),
             ('5', 'Wake Card mints'),
           ];
     final child = Column(
