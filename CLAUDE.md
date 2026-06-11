@@ -37,6 +37,8 @@ flutter test tmp/cold_open_capture_test.dart --update-goldens   # screen capture
 - One crimson accent element per screen; gold ONLY for share/milestone/foil.
 - Onboarding crimson swipes are selective act-break transitions via each
   step's `entryTransition`; ordinary question pages should stay soft.
+- Onboarding has a non-blocking native review gate after `EPISODE 1 READY`;
+  `in_app_review` prompts are best-effort and may be suppressed by iOS.
 - The floating 3-tab bar in main.dart overlays tab bodies — reserve
   `InkSignal.tabBarClearance` at the bottom of every tab body.
 - Today's DBG CLOCK row renders only in debug builds (`kDebugMode`).

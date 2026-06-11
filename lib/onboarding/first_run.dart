@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
@@ -17,6 +18,7 @@ enum _StepKind {
   time,
   render,
   reveal,
+  rating,
 }
 
 enum _StepTransition { soft, crimson, slam }
@@ -73,6 +75,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   int _transitionTick = 0;
   _StepTransition _activeTransition = _StepTransition.soft;
   bool _isTransitioning = false;
+  bool _isFinishing = false;
   DateTime _picked = DateTime(2026, 1, 1, 6, 30);
 
   final Map<String, String> _answers = {
@@ -549,6 +552,13 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       body:
           'Alarm -> Wake Quest -> Title Card -> Morning Episode -> Wake Card.',
     ),
+    _OnboardingStep(
+      kind: _StepKind.rating,
+      kicker: 'QUICK CHECK',
+      title: 'Is this opening scene your vibe?',
+      body:
+          'If WakeSaga feels like it could change your morning, a quick rating helps the pilot season survive.',
+    ),
   ];
 
   @override
@@ -563,10 +573,10 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   double get _progress => (_index + 1) / _steps.length;
 
   void _next() {
-    if (_isTransitioning) return;
+    if (_isTransitioning || _isFinishing) return;
     if (_index == _steps.length - 1) {
       HapticFeedback.heavyImpact();
-      _finish();
+      unawaited(_finishWithRatingRequest());
       return;
     }
     final transition = _steps[_index + 1].entryTransition;
@@ -581,7 +591,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   }
 
   void _back() {
-    if (_index == 0 || _isTransitioning) return;
+    if (_index == 0 || _isTransitioning || _isFinishing) return;
     HapticFeedback.selectionClick();
     _stagePageChange(-1);
   }
@@ -637,6 +647,34 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     );
   }
 
+  Future<void> _finishWithRatingRequest() async {
+    setState(() => _isFinishing = true);
+    try {
+      final inAppReview = InAppReview.instance;
+      final isAvailable = await inAppReview.isAvailable().timeout(
+        const Duration(milliseconds: 700),
+        onTimeout: () => false,
+      );
+      if (isAvailable) {
+        await inAppReview.requestReview().timeout(
+          const Duration(milliseconds: 1200),
+          onTimeout: () {},
+        );
+      }
+    } catch (_) {
+      // Native review prompts are best-effort and often suppressed in
+      // simulator/debug. The onboarding gate must never block completion.
+    }
+    if (!mounted) return;
+    _finish();
+  }
+
+  void _finishWithoutRating() {
+    if (_isFinishing) return;
+    HapticFeedback.selectionClick();
+    _finish();
+  }
+
   @override
   Widget build(BuildContext context) {
     final step = _step;
@@ -673,6 +711,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
                       answers: _answers,
                       onSelect: _select,
                       onTimeChanged: (value) => setState(() => _picked = value),
+                      onContinueWithoutRating: _finishWithoutRating,
                     ),
                     builder: (context, value, child) {
                       if (_activeTransition != _StepTransition.soft) {
@@ -695,17 +734,17 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
                   child: SlabButton(
                     _index == _steps.length - 1
-                        ? 'Arm Episode 1'
+                        ? 'Yes, love it'
                         : step.kind == _StepKind.coldOpen
                         ? 'Roll Episode 0'
                         : 'Continue',
                     key: _index == _steps.length - 1
                         ? const Key('beginButton')
                         : Key('onboardingNext$_index'),
-                    color: _index == _steps.length - 1
+                    color: _index == _steps.length - 2
                         ? InkSignal.gold
                         : InkSignal.crimson,
-                    textColor: _index == _steps.length - 1
+                    textColor: _index == _steps.length - 2
                         ? Colors.black
                         : Colors.white,
                     onTap: _next,
@@ -952,6 +991,7 @@ class _StepBody extends StatelessWidget {
     required this.answers,
     required this.onSelect,
     required this.onTimeChanged,
+    required this.onContinueWithoutRating,
   });
 
   final _OnboardingStep step;
@@ -961,6 +1001,7 @@ class _StepBody extends StatelessWidget {
   final Map<String, String> answers;
   final void Function(String field, String value) onSelect;
   final ValueChanged<DateTime> onTimeChanged;
+  final VoidCallback onContinueWithoutRating;
 
   @override
   Widget build(BuildContext context) {
@@ -991,6 +1032,10 @@ class _StepBody extends StatelessWidget {
           name: nameController.text,
           mission: missionController.text,
           answers: answers,
+        ),
+        _StepKind.rating => _RatingStep(
+          step: step,
+          onContinueWithoutRating: onContinueWithoutRating,
         ),
       },
     );
@@ -1552,6 +1597,115 @@ class _RevealStep extends StatelessWidget {
             child: Text('-> $item', style: InkSignal.mono(14)),
           ),
       ],
+    );
+  }
+}
+
+class _RatingStep extends StatelessWidget {
+  const _RatingStep({
+    required this.step,
+    required this.onContinueWithoutRating,
+  });
+
+  final _OnboardingStep step;
+  final VoidCallback onContinueWithoutRating;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        _Header(step: step),
+        const SizedBox(height: 24),
+        _TimedEntrance(
+          delay: const Duration(milliseconds: 90),
+          offset: const Offset(0, 0.05),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: InkSignal.panel(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'EPISODE 1 IS ARMED EITHER WAY',
+                  style: InkSignal.mono(
+                    12,
+                    color: InkSignal.paper.withValues(alpha: 0.58),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Tap the crimson button if the opening scene works for you. '
+                  'iOS may show the native review sheet. If not, you still go '
+                  'straight into Today.',
+                  style: InkSignal.ui(
+                    18,
+                    color: InkSignal.paper.withValues(alpha: 0.72),
+                    weight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _SecondaryRatingAction(
+                key: const Key('ratingMaybeLater'),
+                label: 'Maybe later',
+                onTap: onContinueWithoutRating,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _SecondaryRatingAction(
+                key: const Key('ratingNeedsWork'),
+                label: 'Needs work',
+                onTap: onContinueWithoutRating,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+class _SecondaryRatingAction extends StatelessWidget {
+  const _SecondaryRatingAction({
+    super.key,
+    required this.label,
+    required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 54,
+        alignment: Alignment.center,
+        decoration: InkSignal.panel(
+          color: InkSignal.base.withValues(alpha: 0.3),
+          borderColor: InkSignal.inkBorder,
+        ),
+        child: Text(
+          label,
+          style: InkSignal.ui(
+            15,
+            color: InkSignal.paper.withValues(alpha: 0.7),
+            weight: FontWeight.w900,
+          ),
+        ),
+      ),
     );
   }
 }

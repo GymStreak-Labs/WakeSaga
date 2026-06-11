@@ -33,9 +33,10 @@ void main() {
     }
 
     expect(stepsCleared, greaterThanOrEqualTo(35));
-    expect(find.text('EPISODE 1 READY'), findsOneWidget);
+    expect(find.text('Is this opening scene your vibe?'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('beginButton')));
+    await tester.pump(const Duration(seconds: 2));
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('TODAY'), findsWidgets);
