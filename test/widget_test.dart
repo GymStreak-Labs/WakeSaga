@@ -4,15 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wakesaga/main.dart';
 
 void main() {
-  Future<void> pressPrimary(WidgetTester tester, String label) async {
-    final button = find.widgetWithText(ElevatedButton, label);
-    expect(button, findsOneWidget);
-    tester.widget<ElevatedButton>(button).onPressed?.call();
-    await tester.pump(const Duration(milliseconds: 450));
-    await tester.pumpAndSettle();
-  }
-
-  testWidgets('full anime onboarding builder reaches staged alarm', (
+  testWidgets('first run arms the Cold Open app shell', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -22,55 +14,33 @@ void main() {
 
     await tester.pumpWidget(const WakeSagaApp());
 
-    expect(find.text('Start your day like an anime character'), findsOneWidget);
-    expect(find.textContaining('Episode 001'), findsWidgets);
+    expect(find.text('START YOUR DAY'), findsOneWidget);
+    expect(find.text('LIKE AN ANIME'), findsOneWidget);
+    expect(find.text('CHARACTER'), findsOneWidget);
 
-    await pressPrimary(tester, 'Build My Opening');
-    expect(find.text('Pick your wake persona'), findsOneWidget);
-    await tester.tap(find.text('Phone first'));
+    await tester.tap(find.byKey(const Key('onboardingNext0')));
     await tester.pumpAndSettle();
+    expect(find.text('EPISODE 0'), findsOneWidget);
 
-    await pressPrimary(tester, 'Next');
-    expect(find.textContaining('After your alarm'), findsOneWidget);
-
-    var reachedFinal = false;
-    for (var index = 0; index < 60; index++) {
-      if (find
-          .widgetWithText(ElevatedButton, 'Start Tomorrow')
-          .evaluate()
-          .isNotEmpty) {
-        await pressPrimary(tester, 'Start Tomorrow');
-        reachedFinal = true;
-        break;
-      }
-
-      final label =
-          find
-              .widgetWithText(ElevatedButton, 'Activate Offer')
-              .evaluate()
-              .isNotEmpty
-          ? 'Activate Offer'
-          : find
-                .widgetWithText(ElevatedButton, 'Start Free Trial')
-                .evaluate()
-                .isNotEmpty
-          ? 'Start Free Trial'
-          : find
-                .widgetWithText(ElevatedButton, 'Continue')
-                .evaluate()
-                .isNotEmpty
-          ? 'Continue'
-          : 'Next';
-      await pressPrimary(tester, label);
+    var stepsCleared = 1;
+    while (find.byKey(const Key('beginButton')).evaluate().isEmpty &&
+        stepsCleared < 60) {
+      final next = find.byKey(Key('onboardingNext$stepsCleared'));
+      expect(next, findsOneWidget);
+      await tester.tap(next);
+      await tester.pumpAndSettle();
+      stepsCleared++;
     }
 
-    expect(reachedFinal, isTrue);
+    expect(stepsCleared, greaterThanOrEqualTo(35));
+    expect(find.text('EPISODE 1 READY'), findsOneWidget);
 
-    expect(find.text('Opening Locked'), findsOneWidget);
-    expect(find.textContaining('Quest gate'), findsWidgets);
-    expect(find.text('Home'), findsWidgets);
-    expect(find.text('Lock In'), findsWidgets);
-    expect(find.text('Receipts'), findsWidgets);
-    expect(find.text('Settings'), findsWidgets);
+    await tester.tap(find.byKey(const Key('beginButton')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('TODAY'), findsWidgets);
+    expect(find.text('SAGA'), findsWidgets);
+    expect(find.text('CAST'), findsWidgets);
+    expect(find.byKey(const Key('alarmAnchor')), findsOneWidget);
   });
 }
