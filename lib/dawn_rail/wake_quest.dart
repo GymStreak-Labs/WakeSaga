@@ -55,12 +55,12 @@ class _WakeQuestState extends State<WakeQuest> {
   }
 
   String get _instruction => switch (_mode) {
-    'Sky Photo' => 'PHOTOGRAPH THE SKY',
-    'Shake' => '20 SHAKES. GO.',
-    'Object Hunt' => 'FIND THE OBJECT',
-    'Water Check' => 'DRINK WATER',
-    'Desk Ready' => 'SHOW YOUR DESK',
-    _ => 'STAND UP. TAP 20.',
+    'Sky Photo' => 'SKY PHOTO TO SILENCE',
+    'Shake' => 'SHAKE TO SILENCE',
+    'Object Hunt' => 'FIND OBJECT TO SILENCE',
+    'Water Check' => 'WATER CHECK TO SILENCE',
+    'Desk Ready' => 'DESK PROOF TO SILENCE',
+    _ => 'GET UP TO SILENCE',
   };
 
   String get _simHint => switch (_mode) {
@@ -135,11 +135,15 @@ class _WakeQuestState extends State<WakeQuest> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Text(
-                      'STEP 2/5 · CLEAR PROOF TO UNLOCK THE TITLE CARD',
+                      _verified
+                          ? 'ALARM OFF · TITLE CARD UNLOCKED'
+                          : 'ALARM RINGING · WAKE QUEST REQUIRED',
                       textAlign: TextAlign.center,
                       style: InkSignal.mono(
                         12,
-                        color: InkSignal.paper.withValues(alpha: 0.54),
+                        color: _verified
+                            ? InkSignal.verifyGreen
+                            : InkSignal.paper.withValues(alpha: 0.54),
                       ),
                     ),
                   ),
@@ -151,7 +155,9 @@ class _WakeQuestState extends State<WakeQuest> {
                             count: _count,
                             target: target,
                             verified: _verified,
-                            hint: _simHint,
+                            hint: _verified
+                                ? 'alarm off · title card next'
+                                : _simHint,
                             onTap: _increment,
                           ),
                   ),
@@ -164,7 +170,7 @@ class _WakeQuestState extends State<WakeQuest> {
                       height: InkSignal.slabHeight,
                       alignment: Alignment.center,
                       child: Opacity(
-                        opacity: 0.3,
+                        opacity: _verified ? 0 : 0.3,
                         child: Text(
                           'SIMULATE FAILED VERIFY ($_fails/3)',
                           style: InkSignal.ui(15, weight: FontWeight.w700),
@@ -266,7 +272,7 @@ class _CounterRing extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    verified ? 'GO' : '$count/$target',
+                    verified ? 'OFF' : '$count/$target',
                     style: InkSignal.display(
                       verified ? 110 : 84,
                       color: verified ? InkSignal.verifyGreen : InkSignal.paper,

@@ -380,16 +380,16 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.education,
       entryTransition: _StepTransition.crimson,
       kicker: 'WAKE QUEST',
-      title: 'The alarm does not end until the quest is cleared.',
+      title: 'The alarm turns off only after Wake Quest.',
       body:
-          'This is the Wayk-inspired mechanic: one tiny proof mission before the title card and episode unlock.',
+          'This is the Wayk-inspired mechanic: one tiny proof mission that silences the alarm, then unlocks the title card and episode.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
       field: 'quest',
       kicker: 'QUEST SELECT',
       title: 'Choose your first Wake Quest.',
-      body: 'Start simple. You can make it harder after trust is built.',
+      body: 'Pick the mission that turns off tomorrow morning’s alarm.',
       choices: [
         _Choice('Get Up', note: 'Movement proof'),
         _Choice('Object Hunt', note: 'Find a real item'),
@@ -1421,14 +1421,14 @@ class _WakeQuestProtocolCard extends StatelessWidget {
     final steps = compact
         ? const [
             ('1', 'Alarm'),
-            ('2', 'Quest'),
+            ('2', 'Turn off'),
             ('3', 'Title'),
             ('4', 'Episode'),
             ('5', 'Card'),
           ]
         : const [
             ('1', 'Alarm rings'),
-            ('2', 'Complete proof mission'),
+            ('2', 'Turn it off with proof'),
             ('3', 'Title Card unlocks'),
             ('4', 'Morning Episode plays'),
             ('5', 'Wake Card mints'),
