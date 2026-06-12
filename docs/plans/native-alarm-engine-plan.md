@@ -85,6 +85,25 @@ Fallback path for iOS < 26:
 - Do not market this as full WakeSaga alarm mode.
 - The app can still open into Dawn Rail, but it cannot honestly guarantee the
   same prominent alarm behavior as AlarmKit.
+- If we want Wayk-style iOS 17-25 coverage, this compatibility mode needs to be
+  productized rather than hidden: local notification wake signal, bundled alarm
+  sound within platform limits, deep link into Dawn Rail, in-app siren once
+  foregrounded, Wake Quest verification, and Filler/Emergency Stop accounting
+  for any OS-level dismiss path.
+
+## Competitor Parity Note
+
+Wayk's public behavior appears aligned with WakeSaga's intended loop: choose a
+mission, alarm rings, complete the mission, then the alarm stops. Its iOS App
+Store listing currently supports iOS 17+, so it cannot rely exclusively on
+AlarmKit. The likely shape is an older compatibility stack on iOS and exact
+alarm/full-screen/foreground service behavior on Android. WakeSaga should keep
+the same behavioral promise while using the strongest available primitive per
+platform:
+
+- iOS 26+: true native AlarmKit mode.
+- iOS 17-25: Wayk-style compatibility mode with honest limitations.
+- Android: exact alarm / alarm-clock mode with foreground siren service.
 
 ## Android Plan
 
