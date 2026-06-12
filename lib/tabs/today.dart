@@ -1,11 +1,13 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../alarm/alarm_arming.dart';
 import '../alarm/alarm_engine.dart';
+import '../alarm/alarm_studio.dart';
+import '../alarm/wake_missions.dart';
 import '../dawn_rail/dawn_takeover.dart';
 import '../dawn_rail/episode_player.dart';
 import '../state/app_state.dart';
@@ -81,34 +83,13 @@ class _TodayTabState extends State<TodayTab>
   }
 
   Future<void> _scheduleAlarmPlan(AppState state) async {
-    try {
-      final engine = AlarmScope.read(context);
-      final capability = await engine.requestPermission();
-      if (!capability.canSchedule) {
-        state.markAlarmScheduleFailed(
-          capability.message ?? 'Alarm permission is not ready yet.',
-        );
-        _showAlarmSnack('Alarm not armed. Permission is not ready.');
-        return;
-      }
-      final scheduled = await engine.schedule(state.ensureActiveAlarmPlan());
-      state.confirmScheduledAlarm(scheduled);
-      _showAlarmSnack(
-        'Episode ${state.nextEpisode} armed for ${state.alarmLabel}.',
-      );
-    } catch (error) {
-      state.markAlarmScheduleFailed('Could not arm alarm: $error');
-      _showAlarmSnack('Alarm not armed. Try again from the alarm sheet.');
-    }
-  }
-
-  Future<void> _cancelAlarmIfNeeded(AppState state) async {
-    final alarmId = state.activeAlarmPlan?.id ?? state.scheduledAlarm?.plan.id;
-    state.setAlarm(enabled: false);
-    if (alarmId != null) {
-      await AlarmScope.read(context).cancel(alarmId);
-    }
-    _showAlarmSnack('Alarm turned off.');
+    final engine = AlarmScope.read(context);
+    final armed = await armAlarmPlan(state: state, engine: engine);
+    _showAlarmSnack(
+      armed
+          ? 'Episode ${state.nextEpisode} armed for ${state.alarmLabel}.'
+          : 'Alarm not armed. Open the alarm to fix it.',
+    );
   }
 
   void _showAlarmSnack(String message) {
@@ -125,147 +106,10 @@ class _TodayTabState extends State<TodayTab>
     );
   }
 
-  void _openAlarmSheet() {
-    final state = AppScope.of(context, listen: false);
-    var pickedTime = state.alarmTime;
-    var pickedQuest = state.quest;
-    var enabled = state.alarmEnabled;
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        final sheetHeight = MediaQuery.sizeOf(sheetContext).height * 0.55;
-        return StatefulBuilder(
-          builder: (context, setSheetState) => SizedBox(
-            height: sheetHeight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: InkSignal.paper.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'ALARM',
-                        style: InkSignal.ui(
-                          15,
-                          weight: FontWeight.w900,
-                          letterSpacing: 2,
-                          color: InkSignal.paper.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      Switch(
-                        value: enabled,
-                        activeTrackColor: InkSignal.paper,
-                        activeThumbColor: InkSignal.base,
-                        onChanged: (value) =>
-                            setSheetState(() => enabled = value),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: CupertinoTheme(
-                      data: const CupertinoThemeData(
-                        brightness: Brightness.dark,
-                        textTheme: CupertinoTextThemeData(
-                          dateTimePickerTextStyle: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w700,
-                            color: InkSignal.paper,
-                          ),
-                        ),
-                      ),
-                      child: CupertinoDatePicker(
-                        mode: CupertinoDatePickerMode.time,
-                        initialDateTime: DateTime(
-                          2026,
-                          1,
-                          1,
-                          pickedTime.hour,
-                          pickedTime.minute,
-                        ),
-                        onDateTimeChanged: (value) => pickedTime = TimeOfDay(
-                          hour: value.hour,
-                          minute: value.minute,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final (quest, note) in const [
-                        ('Get Up', 'motion'),
-                        ('Sky Photo', 'camera'),
-                        ('Shake', 'sensor'),
-                      ])
-                        _Chip(
-                          label: '$quest · $note',
-                          selected: pickedQuest == quest,
-                          onTap: () => setSheetState(() => pickedQuest = quest),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final narrator in const [
-                        'Mentor',
-                        'Rival',
-                        'Captain',
-                      ])
-                        _Chip(
-                          label: narrator == 'Mentor'
-                              ? 'Mentor'
-                              : '$narrator 🔒',
-                          selected: state.narrator == narrator,
-                          onTap: narrator == 'Mentor'
-                              ? () => state.setNarrator(narrator)
-                              : null,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  // The sheet's single crimson element.
-                  SlabButton(
-                    'SAVE',
-                    key: const Key('saveAlarm'),
-                    height: InkSignal.slabHeight,
-                    onTap: () {
-                      state.setAlarm(
-                        time: pickedTime,
-                        enabled: enabled,
-                        questType: pickedQuest,
-                      );
-                      Navigator.of(sheetContext).pop();
-                      if (enabled) {
-                        unawaited(_scheduleAlarmPlan(state));
-                      } else {
-                        unawaited(_cancelAlarmIfNeeded(state));
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+  /// Core scheduling lives in the full-screen Alarm Studio — never a
+  /// half-sheet. Every alarm affordance on Today routes here.
+  void _openAlarmStudio() {
+    unawaited(openAlarmStudio(context));
   }
 
   void _openLockIn() {
@@ -374,6 +218,7 @@ class _TodayTabState extends State<TodayTab>
               const SizedBox(height: 8),
               _anchorRow(state),
               if (_alarmAnchorFailed(state)) _notArmedBanner(state),
+              _nextAlarmCard(state),
               Expanded(
                 child: switch (band) {
                   TodayBand.morning => _morning(state),
@@ -459,6 +304,128 @@ class _TodayTabState extends State<TodayTab>
     );
   }
 
+  /// NEXT ALARM — the alarm-trust surface, above the fold in every band.
+  /// Time, rhythm, schedule truth, Wake Quest contract, episode payoff,
+  /// and an explicit edit affordance into Alarm Studio.
+  Widget _nextAlarmCard(AppState state) {
+    final failed = _alarmAnchorFailed(state);
+    final statusColor = !state.alarmEnabled
+        ? InkSignal.paper.withValues(alpha: 0.45)
+        : failed
+        ? InkSignal.knockdownInk
+        : state.alarmScheduleConfirmed
+        ? InkSignal.verifyGreen
+        : InkSignal.paper.withValues(alpha: 0.7);
+    final mission = WakeMission.byName(state.quest);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: GestureDetector(
+        key: const Key('nextAlarmCard'),
+        behavior: HitTestBehavior.opaque,
+        onTap: _openAlarmStudio,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: InkSignal.panel(
+            borderColor: failed ? InkSignal.knockdownInk : InkSignal.inkBorder,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'NEXT ALARM',
+                      style: InkSignal.mono(
+                        11,
+                        color: InkSignal.paper.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'EDIT',
+                    style: InkSignal.mono(
+                      11,
+                      color: InkSignal.paper.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: InkSignal.paper.withValues(alpha: 0.6),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    state.alarmLabel,
+                    style: InkSignal.display(
+                      40,
+                      color: state.alarmEnabled
+                          ? InkSignal.paper
+                          : InkSignal.paper.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        state.repeatSummary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: InkSignal.mono(
+                          11,
+                          color: InkSignal.paper.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _nextEpisodeLine(state),
+                style: InkSignal.ui(
+                  15,
+                  weight: FontWeight.w900,
+                  letterSpacing: 0.4,
+                  color: statusColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'QUEST ${mission.name.toUpperCase()} · '
+                '${mission.proof.toUpperCase()} · '
+                '${state.difficulty.toUpperCase()} · '
+                'FALLBACK ${state.fallbackQuest.toUpperCase()}',
+                maxLines: 2,
+                style: InkSignal.mono(
+                  10,
+                  color: InkSignal.paper.withValues(alpha: 0.5),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'CLEAR UNLOCKS EP ${state.nextEpisode} · '
+                '${state.narrator.toUpperCase()} NARRATES',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: InkSignal.mono(
+                  10,
+                  color: InkSignal.gold.withValues(alpha: 0.75),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _anchorRow(AppState state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -492,12 +459,12 @@ class _TodayTabState extends State<TodayTab>
                 ),
               ),
             ),
-            // Anchor 1: alarm time + schedule truth. Tap -> Alarm Sheet.
+            // Anchor 1: alarm time + schedule truth. Tap -> Alarm Studio.
             // Long-press -> debug "ring alarm now" (launches Dawn Rail).
             GestureDetector(
               key: const Key('alarmAnchor'),
               behavior: HitTestBehavior.opaque,
-              onTap: _openAlarmSheet,
+              onTap: _openAlarmStudio,
               onLongPress: _ringAlarmNow,
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -665,12 +632,11 @@ class _TodayTabState extends State<TodayTab>
   Widget _day(AppState state) {
     final width = MediaQuery.sizeOf(context).width;
     final card = state.mintedCards.isEmpty ? null : state.mintedCards.last;
-    return Padding(
-      padding: const EdgeInsets.all(24),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 12),
           Text(
             "TODAY'S MISSION",
             textAlign: TextAlign.center,
@@ -689,7 +655,7 @@ class _TodayTabState extends State<TodayTab>
             textAlign: TextAlign.center,
             style: InkSignal.ui(22, weight: FontWeight.w700),
           ),
-          const Spacer(),
+          const SizedBox(height: 20),
           // The one crimson element: a breathing LOCK IN circle.
           Center(
             child: ScaleTransition(
@@ -700,8 +666,8 @@ class _TodayTabState extends State<TodayTab>
                 key: const Key('lockInButton'),
                 onTap: _openLockIn,
                 child: Container(
-                  width: width * 0.56,
-                  height: width * 0.56,
+                  width: width * 0.46,
+                  height: width * 0.46,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     color: InkSignal.crimson,
@@ -736,65 +702,24 @@ class _TodayTabState extends State<TodayTab>
               color: InkSignal.paper.withValues(alpha: 0.45),
             ),
           ),
-          const Spacer(),
-          const _LoopRail(activeIndex: 5),
-          const SizedBox(height: 12),
-          // Next-scene strip: the daily loop always points at tonight.
-          // Tap opens the Alarm Sheet — the strip is also the fix path.
-          GestureDetector(
-            key: const Key('nextEpisodeStrip'),
-            behavior: HitTestBehavior.opaque,
-            onTap: _openAlarmSheet,
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: InkSignal.panel(),
-              child: Row(
-                children: [
-                  if (card != null) ...[
-                    MiniCardThumb(record: card, width: 44, height: 58),
-                    const SizedBox(width: 12),
-                  ],
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'NEXT EPISODE',
-                          style: InkSignal.mono(
-                            11,
-                            color: InkSignal.paper.withValues(alpha: 0.45),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _nextEpisodeLine(state),
-                          style: InkSignal.ui(
-                            17,
-                            weight: FontWeight.w900,
-                            letterSpacing: 0.4,
-                            color:
-                                !state.alarmEnabled || _alarmAnchorFailed(state)
-                                ? InkSignal.knockdownInk
-                                : InkSignal.paper,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${state.questReceipt.toUpperCase()} · ${state.wakeJolt.toUpperCase()}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: InkSignal.mono(
-                            10,
-                            color: InkSignal.paper.withValues(alpha: 0.45),
-                          ),
-                        ),
-                      ],
-                    ),
+          const SizedBox(height: 18),
+          if (card != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                MiniCardThumb(record: card, width: 44, height: 58),
+                const SizedBox(width: 12),
+                Text(
+                  'LAST CLEAR · EP ${card.episode}',
+                  style: InkSignal.mono(
+                    11,
+                    color: InkSignal.paper.withValues(alpha: 0.45),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
+          const SizedBox(height: 12),
+          const _LoopRail(activeIndex: 5),
         ],
       ),
     );

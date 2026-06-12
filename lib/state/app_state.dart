@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../alarm/alarm_models.dart';
+import '../alarm/wake_missions.dart';
 
 /// Outcome of a single day (one episode). Episodes are additive — the count
 /// never decrements, knockdowns and fillers are canon chapters, not resets.
@@ -193,7 +194,10 @@ class AppState extends ChangeNotifier {
   // ---- Alarm + quest ------------------------------------------------------
   TimeOfDay alarmTime = const TimeOfDay(hour: 6, minute: 30);
   bool alarmEnabled = true;
-  String quest = 'Get Up'; // 'Get Up' | 'Sky Photo' | 'Shake'.
+  String quest = 'Get Up'; // A WakeMission name — see wake_missions.dart.
+
+  /// Explicit per-day repeat selection; null = derive from [repeatRhythm].
+  List<int>? customRepeatDays;
   AlarmPlan? activeAlarmPlan;
   ScheduledAlarm? scheduledAlarm;
   String? alarmScheduleError;
@@ -207,10 +211,39 @@ class AppState extends ChangeNotifier {
 
   String get alarmScheduleMode => scheduledAlarm?.engineMode ?? 'not scheduled';
 
-  void setAlarm({TimeOfDay? time, bool? enabled, String? questType}) {
+  /// ISO weekday numbers (1=Mon..7=Sun) the alarm repeats on.
+  List<int> get repeatDays => customRepeatDays ?? _repeatDaysFor(repeatRhythm);
+
+  static const _dayLetters = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+
+  String get repeatSummary {
+    final days = repeatDays.toSet();
+    if (days.length == 7) return 'EVERY DAY';
+    if (days.length == 5 && days.containsAll(const {1, 2, 3, 4, 5})) {
+      return 'WEEKDAYS';
+    }
+    if (days.length == 2 && days.containsAll(const {6, 7})) return 'WEEKENDS';
+    if (days.isEmpty) return 'ONE TIME';
+    return (days.toList()..sort()).map((d) => _dayLetters[d - 1]).join(' ');
+  }
+
+  void setAlarm({
+    TimeOfDay? time,
+    bool? enabled,
+    String? questType,
+    String? difficultyLevel,
+    String? fallbackQuestType,
+    List<int>? repeatDays,
+  }) {
     alarmTime = time ?? alarmTime;
     alarmEnabled = enabled ?? alarmEnabled;
-    quest = questType ?? quest;
+    if (questType != null && questType != quest) {
+      quest = questType;
+      proof = WakeMission.byName(questType).proof;
+    }
+    if (difficultyLevel != null) difficulty = difficultyLevel;
+    if (fallbackQuestType != null) fallbackQuest = fallbackQuestType;
+    if (repeatDays != null) _applyRepeatDays(repeatDays);
     if (alarmEnabled) {
       _stageActiveAlarmPlan();
     } else {
@@ -461,6 +494,7 @@ class AppState extends ChangeNotifier {
     'alarmMinute': alarmTime.minute,
     'alarmEnabled': alarmEnabled,
     'quest': quest,
+    'customRepeatDays': customRepeatDays,
     'missionText': missionText,
     'clearedToday': clearedToday,
     'log': log.map((record) => record.toJson()).toList(),
@@ -493,6 +527,10 @@ class AppState extends ChangeNotifier {
     );
     alarmEnabled = json['alarmEnabled'] as bool? ?? alarmEnabled;
     quest = json['quest'] as String? ?? quest;
+    customRepeatDays = (json['customRepeatDays'] as List?)
+        ?.whereType<num>()
+        .map((value) => value.toInt())
+        .toList();
     missionText = json['missionText'] as String? ?? missionText;
     clearedToday = json['clearedToday'] as bool? ?? clearedToday;
 
@@ -557,7 +595,7 @@ class AppState extends ChangeNotifier {
       episode: nextEpisode,
       hour: alarmTime.hour,
       minute: alarmTime.minute,
-      repeatDays: _repeatDaysFor(repeatRhythm),
+      repeatDays: repeatDays,
       quest: quest,
       mission: missionText,
       narrator: narrator,
@@ -576,6 +614,30 @@ class AppState extends ChangeNotifier {
       'Tomorrow only' || 'One time' => const [],
       _ => const [1, 2, 3, 4, 5],
     };
+  }
+
+  /// Stores an explicit day selection, snapping back to the named rhythm
+  /// presets so existing rhythm-string copy stays truthful.
+  void _applyRepeatDays(List<int> days) {
+    final set = days.toSet();
+    bool matches(Set<int> preset) =>
+        set.length == preset.length && set.containsAll(preset);
+    if (matches(const {1, 2, 3, 4, 5, 6, 7})) {
+      repeatRhythm = 'Every day';
+      customRepeatDays = null;
+    } else if (matches(const {1, 2, 3, 4, 5})) {
+      repeatRhythm = 'Weekdays';
+      customRepeatDays = null;
+    } else if (matches(const {6, 7})) {
+      repeatRhythm = 'Weekends';
+      customRepeatDays = null;
+    } else if (set.isEmpty) {
+      repeatRhythm = 'Tomorrow only';
+      customRepeatDays = null;
+    } else {
+      repeatRhythm = 'Custom';
+      customRepeatDays = set.toList()..sort();
+    }
   }
 
   void _upsertExpectedFire(ExpectedFireRecord record) {

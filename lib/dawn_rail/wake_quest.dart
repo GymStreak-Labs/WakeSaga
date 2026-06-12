@@ -39,6 +39,7 @@ class _WakeQuestState extends State<WakeQuest>
   )..repeat(reverse: true);
 
   late String _mode; // First-run Wake Quest label.
+  late String _fallback; // Configured fallback quest (never equals _mode).
   int _count = 0;
   int _fails = 0;
   bool _verified = false;
@@ -50,7 +51,11 @@ class _WakeQuestState extends State<WakeQuest>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_modeInitialized) {
-      _mode = AppScope.of(context).quest;
+      final state = AppScope.of(context);
+      _mode = state.quest;
+      _fallback = state.fallbackQuest == _mode
+          ? (_mode == 'Shake' ? 'Get Up' : 'Shake')
+          : state.fallbackQuest;
       _modeInitialized = true;
     }
   }
@@ -116,14 +121,14 @@ class _WakeQuestState extends State<WakeQuest>
   void _takeFallback() {
     HapticFeedback.selectionClick();
     setState(() {
-      _mode = 'Shake';
+      _mode = _fallback;
       _count = 0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final showFallback = _fails >= 2 && _mode != 'Shake' && !_verified;
+    final showFallback = _fails >= 2 && _mode != _fallback && !_verified;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -217,7 +222,7 @@ class _WakeQuestState extends State<WakeQuest>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "CAN'T VERIFY — 20 SHAKES INSTEAD",
+                              "CAN'T VERIFY — ${_fallback.toUpperCase()} INSTEAD",
                               style: InkSignal.ui(
                                 18,
                                 weight: FontWeight.w900,
