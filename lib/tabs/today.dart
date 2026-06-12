@@ -680,22 +680,20 @@ class _TodayTabState extends State<TodayTab>
           ),
           const SizedBox(height: 8),
           _LockInCard(breathe: _breathe, onTap: _openLockIn),
-          const SizedBox(height: 18),
-          if (card != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                MiniCardThumb(record: card, width: 44, height: 58),
-                const SizedBox(width: 12),
-                Text(
-                  'LAST CLEAR · EP ${card.episode}',
-                  style: InkSignal.mono(
-                    11,
-                    color: InkSignal.paper.withValues(alpha: 0.45),
-                  ),
-                ),
-              ],
+          if (card != null) ...[
+            const SizedBox(height: 18),
+            Text(
+              'LATEST WAKE RECEIPT',
+              style: InkSignal.ui(
+                12,
+                weight: FontWeight.w900,
+                letterSpacing: 2,
+                color: InkSignal.paper.withValues(alpha: 0.38),
+              ),
             ),
+            const SizedBox(height: 7),
+            _LatestReceiptCard(record: card, onTap: widget.onOpenSaga),
+          ],
         ],
       ),
     );
@@ -1131,6 +1129,76 @@ class _LockInCard extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LatestReceiptCard extends StatelessWidget {
+  const _LatestReceiptCard({required this.record, required this.onTap});
+
+  final DayRecord record;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        decoration: InkSignal.panel(
+          color: InkSignal.base,
+          borderColor: InkSignal.inkBorder,
+        ),
+        child: Row(
+          children: [
+            MiniCardThumb(record: record, width: 34, height: 46),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'EP ${record.episode} CLEARED',
+                    style: InkSignal.ui(
+                      15,
+                      weight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    record.wakeTime == '—'
+                        ? 'Saved proof from your last completed alarm'
+                        : 'Saved proof · ${record.wakeTime}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: InkSignal.ui(
+                      13,
+                      color: InkSignal.paper.withValues(alpha: 0.55),
+                      weight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'SAGA',
+              style: InkSignal.mono(
+                11,
+                color: InkSignal.gold.withValues(alpha: 0.85),
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: InkSignal.gold.withValues(alpha: 0.85),
+            ),
+          ],
         ),
       ),
     );
