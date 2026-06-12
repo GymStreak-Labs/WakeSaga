@@ -305,7 +305,7 @@ class _TodayTabState extends State<TodayTab>
   }
 
   /// NEXT ALARM — the alarm-trust surface, above the fold in every band.
-  /// Time, rhythm, schedule truth, Wake Quest contract, episode payoff,
+  /// Time, rhythm, schedule truth, Wake Quest contract, episode mission,
   /// and an explicit edit affordance into Alarm Studio.
   Widget _nextAlarmCard(AppState state) {
     final failed = _alarmAnchorFailed(state);
@@ -317,6 +317,7 @@ class _TodayTabState extends State<TodayTab>
         ? InkSignal.verifyGreen
         : InkSignal.paper.withValues(alpha: 0.7);
     final mission = WakeMission.byName(state.quest);
+    final missionText = _missionLine(state);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: GestureDetector(
@@ -414,14 +415,19 @@ class _TodayTabState extends State<TodayTab>
               ),
               const SizedBox(height: 4),
               Text(
-                'CLEAR UNLOCKS EP ${state.nextEpisode} · '
-                '${state.narrator.toUpperCase()} NARRATES',
+                'CLEAR WAKE QUEST -> TITLE CARD + MORNING EPISODE',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: InkSignal.mono(
                   10,
                   color: InkSignal.gold.withValues(alpha: 0.75),
                 ),
+              ),
+              const SizedBox(height: 10),
+              _EpisodeMissionBrief(
+                episode: state.nextEpisode,
+                mission: missionText,
+                title: deriveEpisodeTitle(missionText, state.nextEpisode),
               ),
             ],
           ),
@@ -433,107 +439,91 @@ class _TodayTabState extends State<TodayTab>
   Widget _anchorRow(AppState state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: SizedBox(
-        height: 44,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: GestureDetector(
-                key: const Key('arcChip'),
-                onTap: widget.onOpenSaga,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: InkSignal.inkBorder, width: 2),
-                    borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-                  ),
-                  child: Text(
-                    'ARC ${_roman(state.arcNumber)} · EP ${state.episodeCount}',
-                    style: InkSignal.ui(
-                      13,
-                      weight: FontWeight.w700,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Anchor 1: alarm time + schedule truth. Tap -> Alarm Studio.
-            // Long-press -> debug "ring alarm now" (launches Dawn Rail).
-            GestureDetector(
-              key: const Key('alarmAnchor'),
-              behavior: HitTestBehavior.opaque,
-              onTap: _openAlarmStudio,
-              onLongPress: _ringAlarmNow,
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              key: const Key('arcChip'),
+              onTap: widget.onOpenSaga,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                height: 42,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                alignment: Alignment.centerLeft,
                 decoration: BoxDecoration(
-                  color: InkSignal.base,
-                  border: Border.all(
-                    color: _alarmAnchorFailed(state)
-                        ? InkSignal.knockdownInk
-                        : InkSignal.inkBorder,
-                    width: 2,
-                  ),
+                  border: Border.all(color: InkSignal.inkBorder, width: 2),
                   borderRadius: BorderRadius.circular(InkSignal.panelRadius),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'WAKE ',
-                      style: InkSignal.mono(
-                        11,
-                        color: InkSignal.paper.withValues(alpha: 0.45),
-                      ),
-                    ),
-                    Text(
-                      state.alarmLabel,
-                      style: InkSignal.ui(
-                        22,
-                        weight: FontWeight.w900,
-                        color: state.alarmEnabled
-                            ? InkSignal.paper
-                            : InkSignal.paper.withValues(alpha: 0.35),
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    Icon(
-                      _alarmAnchorFailed(state)
-                          ? Icons.error_outline
-                          : state.alarmEnabled
-                          ? Icons.alarm_on
-                          : Icons.alarm_off,
-                      size: 20,
-                      color: _alarmAnchorFailed(state)
-                          ? InkSignal.knockdownInk
-                          : state.alarmEnabled && state.alarmScheduleConfirmed
-                          ? InkSignal.verifyGreen
-                          : state.alarmEnabled
-                          ? InkSignal.paper
-                          : InkSignal.paper.withValues(alpha: 0.35),
-                    ),
-                    const SizedBox(width: 4),
-                    // Edit cue: the anchor is a tappable control, not a label.
-                    Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: InkSignal.paper.withValues(alpha: 0.45),
-                    ),
-                  ],
+                child: Text(
+                  'ARC ${_roman(state.arcNumber)} · EP ${state.episodeCount} CLEARED',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: InkSignal.ui(
+                    13,
+                    weight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          // Compact alarm settings affordance. The full time/status belongs
+          // to the large Next Alarm card below, so this row cannot overlap.
+          GestureDetector(
+            key: const Key('alarmAnchor'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _openAlarmStudio,
+            onLongPress: _ringAlarmNow,
+            child: Container(
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 11),
+              decoration: BoxDecoration(
+                color: InkSignal.base,
+                border: Border.all(
+                  color: _alarmAnchorFailed(state)
+                      ? InkSignal.knockdownInk
+                      : InkSignal.inkBorder,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _alarmAnchorFailed(state)
+                        ? Icons.error_outline
+                        : state.alarmEnabled
+                        ? Icons.alarm_on
+                        : Icons.alarm_off,
+                    size: 18,
+                    color: _alarmAnchorFailed(state)
+                        ? InkSignal.knockdownInk
+                        : state.alarmEnabled && state.alarmScheduleConfirmed
+                        ? InkSignal.verifyGreen
+                        : state.alarmEnabled
+                        ? InkSignal.paper
+                        : InkSignal.paper.withValues(alpha: 0.35),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(
+                    'ALARM',
+                    style: InkSignal.mono(
+                      11,
+                      color: InkSignal.paper.withValues(alpha: 0.65),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: InkSignal.paper.withValues(alpha: 0.45),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -638,35 +628,15 @@ class _TodayTabState extends State<TodayTab>
   }
 
   Widget _day(AppState state) {
-    final card = state.mintedCards.isEmpty ? null : state.mintedCards.last;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            "TODAY'S MISSION",
-            textAlign: TextAlign.center,
-            style: InkSignal.ui(
-              13,
-              weight: FontWeight.w900,
-              letterSpacing: 2,
-              color: InkSignal.paper.withValues(alpha: 0.45),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            state.missionText.isEmpty
-                ? 'Hold the line until tonight.'
-                : state.missionText,
-            textAlign: TextAlign.center,
-            style: InkSignal.ui(22, weight: FontWeight.w700),
-          ),
-          const SizedBox(height: 16),
           _LoopRail(
             activeIndex: 5,
             state: state,
-            title: "WHEN TOMORROW'S ALARM RINGS",
+            title: 'WHAT HAPPENS WHEN THE ALARM RINGS',
           ),
           const SizedBox(height: 26),
           Text(
@@ -678,22 +648,21 @@ class _TodayTabState extends State<TodayTab>
               color: InkSignal.paper.withValues(alpha: 0.38),
             ),
           ),
-          const SizedBox(height: 8),
-          _LockInCard(breathe: _breathe, onTap: _openLockIn),
-          if (card != null) ...[
-            const SizedBox(height: 18),
-            Text(
-              'LATEST WAKE RECEIPT',
-              style: InkSignal.ui(
-                12,
-                weight: FontWeight.w900,
-                letterSpacing: 2,
-                color: InkSignal.paper.withValues(alpha: 0.38),
-              ),
+          const SizedBox(height: 4),
+          Text(
+            'Optional: use the same mission for a 20s Lock In clip.',
+            style: InkSignal.ui(
+              13,
+              color: InkSignal.paper.withValues(alpha: 0.5),
+              weight: FontWeight.w700,
             ),
-            const SizedBox(height: 7),
-            _LatestReceiptCard(record: card, onTap: widget.onOpenSaga),
-          ],
+          ),
+          const SizedBox(height: 8),
+          _LockInCard(
+            breathe: _breathe,
+            onTap: _openLockIn,
+            mission: _missionLine(state),
+          ),
         ],
       ),
     );
@@ -713,6 +682,10 @@ class _TodayTabState extends State<TodayTab>
     }
     return 'EP ${state.nextEpisode} set for ${state.alarmLabel} - ARMING...';
   }
+
+  String _missionLine(AppState state) => state.missionText.isEmpty
+      ? 'Hold the line until tonight'
+      : state.missionText;
 
   Widget _night(AppState state) {
     final today = state.clearedToday
@@ -1050,11 +1023,70 @@ class _Stamp extends StatelessWidget {
   }
 }
 
+class _EpisodeMissionBrief extends StatelessWidget {
+  const _EpisodeMissionBrief({
+    required this.episode,
+    required this.mission,
+    required this.title,
+  });
+
+  final int episode;
+  final String mission;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 11),
+      decoration: InkSignal.panel(
+        color: InkSignal.base,
+        borderColor: InkSignal.inkBorder.withValues(alpha: 0.75),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'EP $episode MISSION',
+            style: InkSignal.mono(
+              10,
+              color: InkSignal.paper.withValues(alpha: 0.42),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            mission,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: InkSignal.ui(16, weight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Becomes "$title" after the Wake Quest clears.',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: InkSignal.ui(
+              12,
+              color: InkSignal.paper.withValues(alpha: 0.55),
+              weight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LockInCard extends StatelessWidget {
-  const _LockInCard({required this.breathe, required this.onTap});
+  const _LockInCard({
+    required this.breathe,
+    required this.onTap,
+    required this.mission,
+  });
 
   final Animation<double> breathe;
   final VoidCallback onTap;
+  final String mission;
 
   @override
   Widget build(BuildContext context) {
@@ -1098,7 +1130,7 @@ class _LockInCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'LOCK IN CLIP',
+                      'MISSION BOOST',
                       style: InkSignal.ui(
                         15,
                         weight: FontWeight.w900,
@@ -1107,7 +1139,7 @@ class _LockInCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      '20s before gym, study, or work',
+                      '20s clip for: $mission',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: InkSignal.ui(
@@ -1129,76 +1161,6 @@ class _LockInCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LatestReceiptCard extends StatelessWidget {
-  const _LatestReceiptCard({required this.record, required this.onTap});
-
-  final DayRecord record;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
-        decoration: InkSignal.panel(
-          color: InkSignal.base,
-          borderColor: InkSignal.inkBorder,
-        ),
-        child: Row(
-          children: [
-            MiniCardThumb(record: record, width: 34, height: 46),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'EP ${record.episode} CLEARED',
-                    style: InkSignal.ui(
-                      15,
-                      weight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    record.wakeTime == '—'
-                        ? 'Saved proof from your last completed alarm'
-                        : 'Saved proof · ${record.wakeTime}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: InkSignal.ui(
-                      13,
-                      color: InkSignal.paper.withValues(alpha: 0.55),
-                      weight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'SAGA',
-              style: InkSignal.mono(
-                11,
-                color: InkSignal.gold.withValues(alpha: 0.85),
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.chevron_right,
-              size: 18,
-              color: InkSignal.gold.withValues(alpha: 0.85),
-            ),
-          ],
         ),
       ),
     );
