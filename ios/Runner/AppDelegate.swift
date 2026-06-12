@@ -12,5 +12,8 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    WakeSagaAlarmEngine.shared.attach(
+      to: engineBridge.applicationRegistrar.messenger()
+    )
   }
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wakesaga/alarm/alarm_engine.dart';
 import 'package:wakesaga/alarm/alarm_models.dart';
+import 'package:wakesaga/alarm/native_alarm_engine.dart';
 import 'package:wakesaga/state/app_state.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('AppState persists alarm plan and expected-fire records', () {
     final state = AppState()
       ..firstRunComplete = true
@@ -69,6 +73,39 @@ void main() {
     expect(await engine.listScheduled(), hasLength(1));
 
     await engine.cancel('wake-test');
+    expect(await engine.listScheduled(), isEmpty);
+    engine.dispose();
+  });
+
+  test('NativeAlarmEngine falls back when platform plugin is absent', () async {
+    final engine = NativeAlarmEngine(
+      channel: const MethodChannel('wakesaga/test_missing_alarm_engine'),
+    );
+
+    final capability = await engine.requestPermission();
+    expect(capability.canSchedule, isTrue);
+    expect(capability.compatibilityMode, isTrue);
+
+    final plan = AlarmPlan(
+      id: 'wake-fallback',
+      episode: 1,
+      hour: 8,
+      minute: 5,
+      repeatDays: const [],
+      quest: 'Get Up',
+      mission: 'Finish outline',
+      narrator: 'Mentor',
+      joltAssetPath: null,
+      fallbackQuest: 'Shake',
+      createdAt: DateTime(2026, 6, 12),
+    );
+    final scheduled = await engine.schedule(plan);
+
+    expect(scheduled.plan.id, 'wake-fallback');
+    expect(scheduled.engineMode, 'fake-compatibility');
+    expect(await engine.listScheduled(), hasLength(1));
+
+    await engine.cancel('wake-fallback');
     expect(await engine.listScheduled(), isEmpty);
     engine.dispose();
   });

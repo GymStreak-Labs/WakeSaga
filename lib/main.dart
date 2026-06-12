@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'alarm/alarm_engine.dart';
 import 'alarm/alarm_models.dart';
+import 'alarm/native_alarm_engine.dart';
 import 'dawn_rail/dawn_takeover.dart';
 import 'onboarding/first_run.dart';
 import 'state/app_state.dart';
@@ -29,7 +30,7 @@ Future<void> main() async {
     ),
   );
   final store = await AppStateStore.create();
-  final alarmEngine = FakeAlarmEngine();
+  final alarmEngine = NativeAlarmEngine();
   final initialState = _previewMainApp ? null : store.loadState();
   final initialLaunch = await alarmEngine.consumeLaunchAlarm();
   runApp(
@@ -102,6 +103,8 @@ class _WakeSagaAppState extends State<WakeSagaApp> {
     _store?.dispose();
     if (_alarmEngine case FakeAlarmEngine fake) {
       fake.dispose();
+    } else if (_alarmEngine case NativeAlarmEngine native) {
+      native.dispose();
     }
     _state.dispose();
     super.dispose();
