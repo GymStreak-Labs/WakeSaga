@@ -10,9 +10,11 @@ import '../widgets/screentone.dart';
 import 'wake_quest.dart';
 
 /// Dawn Rail step 1 — the alarm-ringing takeover.
-/// Full-bleed OLED black, zero nav chrome, no back. EP number huge,
-/// cold-open subtitle, one crimson BEGIN QUEST slab in the bottom 45%,
-/// and a visible dim "FILLER (snooze 9 min)" row. The alarm never traps.
+/// Full-bleed OLED black, zero nav chrome, no back. The screen must read in
+/// 5 seconds to a half-asleep user: the time is huge and BLARING (shockwaves,
+/// edge flash, shaking bell), and the one crimson command — TURN OFF ALARM —
+/// carries its own mechanic ("enter Wake Quest") so nothing else has to
+/// explain it. A visible dim FILLER row keeps the no-trap rule.
 class DawnTakeover extends StatefulWidget {
   const DawnTakeover({super.key});
 
@@ -21,15 +23,24 @@ class DawnTakeover extends StatefulWidget {
 }
 
 class _DawnTakeoverState extends State<DawnTakeover>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
+  // Heartbeat: drives glows, edge flash, waveform. Reverses like breathing.
   late final AnimationController _pulse = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1100),
   )..repeat(reverse: true);
 
+  // Siren: one-way loop driving the outward shockwave rings and bell shake,
+  // so the alarm always radiates outward instead of breathing in.
+  late final AnimationController _siren = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  )..repeat();
+
   @override
   void dispose() {
     _pulse.dispose();
+    _siren.dispose();
     super.dispose();
   }
 
@@ -57,96 +68,70 @@ class _DawnTakeoverState extends State<DawnTakeover>
         body: Stack(
           fit: StackFit.expand,
           children: [
-            const _AlarmBackplate(),
+            _AlarmBackplate(pulse: _pulse),
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
                 child: Column(
                   children: [
-                    _AlarmHeader(
-                      alarmLabel: state.alarmLabel,
-                      episode: state.nextEpisode,
-                    ),
+                    _AlarmHeader(episode: state.nextEpisode, pulse: _pulse),
                     Expanded(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final faceSize = math.min(
-                            292.0,
-                            math.max(232.0, constraints.maxHeight * 0.48),
-                          );
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _EpicAlarmFace(
-                                alarmLabel: state.alarmLabel,
-                                episode: state.nextEpisode,
-                                size: faceSize,
-                                pulse: _pulse,
-                              ),
-                              const SizedBox(height: 14),
-                              StrokedSubtitle(
-                                'Alarm is live. ${state.quest} turns it off.',
-                                size: 20,
-                              ),
-                              const SizedBox(height: 14),
-                              _QuestLockPanel(
-                                name: state.userName,
-                                quest: state.quest,
-                                proof: state.proof,
-                                questPlace: state.questPlace,
-                              ),
-                            ],
-                          );
-                        },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _BlaringClock(
+                            alarmLabel: state.alarmLabel,
+                            pulse: _pulse,
+                            siren: _siren,
+                          ),
+                          const SizedBox(height: 6),
+                          StrokedSubtitle(
+                            '"${state.userName}. Up. '
+                            '${state.quest} turns this off."',
+                            size: 19,
+                          ),
+                          const SizedBox(height: 16),
+                          _QuestStrip(quest: state.quest, proof: state.proof),
+                        ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(2, 0, 2, 0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // The one hard crimson command: the alarm can only
-                          // be silenced by entering the Wake Quest.
-                          SlabButton(
-                            'TURN OFF ALARM',
-                            key: const Key('beginQuest'),
-                            onTap: _beginQuest,
-                            height: 88,
-                          ),
-                          const SizedBox(height: 10),
-                          _AlarmWaveform(pulse: _pulse),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Wake Quest required',
-                            style: InkSignal.mono(
-                              12,
-                              color: InkSignal.paper.withValues(alpha: 0.54),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Honest, labeled, visible escape. Costs a grey panel.
-                          GestureDetector(
-                            key: const Key('fillerRow'),
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _takeFiller,
-                            child: Container(
-                              height: InkSignal.slabHeight,
-                              alignment: Alignment.center,
-                              child: Opacity(
-                                opacity: 0.5,
-                                child: Text(
-                                  'FILLER (snooze 9 min)',
-                                  style: InkSignal.ui(
-                                    18,
-                                    weight: FontWeight.w700,
-                                    letterSpacing: 0.6,
-                                  ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // The one hard crimson command: the alarm can only be
+                        // silenced by entering the Wake Quest, and the slab
+                        // itself says so.
+                        _SirenSlab(
+                          key: const Key('beginQuest'),
+                          quest: state.quest,
+                          pulse: _pulse,
+                          onTap: _beginQuest,
+                        ),
+                        const SizedBox(height: 12),
+                        _AlarmWaveform(pulse: _pulse),
+                        const SizedBox(height: 6),
+                        // Honest, labeled, visible escape. Costs a grey panel.
+                        GestureDetector(
+                          key: const Key('fillerRow'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _takeFiller,
+                          child: Container(
+                            height: InkSignal.slabHeight,
+                            alignment: Alignment.center,
+                            child: Opacity(
+                              opacity: 0.5,
+                              child: Text(
+                                'FILLER (snooze 9 min)',
+                                style: InkSignal.ui(
+                                  18,
+                                  weight: FontWeight.w700,
+                                  letterSpacing: 0.6,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -159,15 +144,19 @@ class _DawnTakeoverState extends State<DawnTakeover>
   }
 }
 
+/// Dark crimson dawn gradient + speed lines + screentone, with a pulsing
+/// crimson frame around the screen edge so the whole device reads as blaring.
 class _AlarmBackplate extends StatelessWidget {
-  const _AlarmBackplate();
+  const _AlarmBackplate({required this.pulse});
+
+  final Animation<double> pulse;
 
   @override
   Widget build(BuildContext context) {
-    return const Stack(
+    return Stack(
       fit: StackFit.expand,
       children: [
-        DecoratedBox(
+        const DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(
               center: Alignment(0, -0.64),
@@ -177,20 +166,38 @@ class _AlarmBackplate extends StatelessWidget {
             ),
           ),
         ),
-        CustomPaint(
+        const CustomPaint(
           painter: SpeedLinesPainter(color: InkSignal.crimson, opacity: 0.09),
         ),
-        CustomPaint(painter: ScreentonePainter(opacity: 0.04)),
+        const CustomPaint(painter: ScreentonePainter(opacity: 0.04)),
+        IgnorePointer(
+          child: AnimatedBuilder(
+            animation: pulse,
+            builder: (context, _) {
+              final beat = Curves.easeInOut.transform(pulse.value);
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: InkSignal.crimson.withValues(
+                      alpha: 0.10 + beat * 0.30,
+                    ),
+                    width: 4,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
 }
 
 class _AlarmHeader extends StatelessWidget {
-  const _AlarmHeader({required this.alarmLabel, required this.episode});
+  const _AlarmHeader({required this.episode, required this.pulse});
 
-  final String alarmLabel;
   final int episode;
+  final Animation<double> pulse;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +209,7 @@ class _AlarmHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'COLD OPEN ALARM',
+                'COLD OPEN',
                 style: InkSignal.mono(
                   12,
                   color: InkSignal.paper.withValues(alpha: 0.55),
@@ -210,119 +217,133 @@ class _AlarmHeader extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'EP $episode · $alarmLabel',
+                'EP $episode',
                 style: InkSignal.ui(20, weight: FontWeight.w900),
               ),
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: InkSignal.crimson.withValues(alpha: 0.16),
-            border: Border.all(
-              color: InkSignal.crimson.withValues(alpha: 0.82),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-          ),
-          child: Text(
-            'RINGING',
-            style: InkSignal.mono(11, color: InkSignal.crimson),
-          ),
+        AnimatedBuilder(
+          animation: pulse,
+          builder: (context, _) {
+            final beat = Curves.easeInOut.transform(pulse.value);
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: InkSignal.crimson.withValues(alpha: 0.10 + beat * 0.12),
+                border: Border.all(
+                  color: InkSignal.crimson.withValues(alpha: 0.82),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: InkSignal.crimson.withValues(
+                        alpha: 0.35 + beat * 0.65,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'RINGING',
+                    style: InkSignal.mono(11, color: InkSignal.crimson),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
   }
 }
 
-class _EpicAlarmFace extends StatelessWidget {
-  const _EpicAlarmFace({
+/// The hero: a shaking bell over a giant skewed wake time, with continuous
+/// outward shockwave rings. No panel, no border — the time IS the screen.
+class _BlaringClock extends StatelessWidget {
+  const _BlaringClock({
     required this.alarmLabel,
-    required this.episode,
-    required this.size,
     required this.pulse,
+    required this.siren,
   });
 
   final String alarmLabel;
-  final int episode;
-  final double size;
   final Animation<double> pulse;
+  final Animation<double> siren;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: pulse,
+      animation: Listenable.merge([pulse, siren]),
       builder: (context, _) {
         final beat = Curves.easeInOut.transform(pulse.value);
         return SizedBox(
-          width: size,
-          height: size,
-          child: CustomPaint(
-            painter: _AlarmShockPainter(beat: beat),
-            child: Center(
-              child: Transform.scale(
-                scale: 1 + beat * 0.035,
-                child: Container(
-                  width: size * 0.68,
-                  height: size * 0.68,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black,
-                    border: Border.all(
-                      color: InkSignal.paper.withValues(alpha: 0.92),
-                      width: 3,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: InkSignal.crimson.withValues(
-                          alpha: 0.24 + beat * 0.24,
-                        ),
-                        blurRadius: 38 + beat * 24,
-                        spreadRadius: 2 + beat * 8,
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _AlarmTicksPainter(beat: beat),
-                        ),
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'ALARM LIVE',
-                            style: InkSignal.mono(
-                              10,
-                              color: InkSignal.crimson.withValues(alpha: 0.9),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: SkewedDisplay(alarmLabel, size: size * 0.17),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'EP $episode · WAKE QUEST LOCK',
-                            textAlign: TextAlign.center,
-                            style: InkSignal.mono(
-                              9,
-                              color: InkSignal.paper.withValues(alpha: 0.48),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+          width: double.infinity,
+          height: 252,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(painter: _ShockwavePainter(t: siren.value)),
               ),
-            ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.rotate(
+                    // Hard bell shake — clearly ringing, not breathing.
+                    angle: math.sin(siren.value * math.pi * 6) * 0.16,
+                    child: Icon(
+                      Icons.alarm,
+                      size: 46,
+                      color: InkSignal.paper.withValues(alpha: 0.92),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Transform.scale(
+                    scale: 1 + beat * 0.025,
+                    child: Transform(
+                      transform: Matrix4.skewX(-6 * math.pi / 180),
+                      alignment: Alignment.center,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            alarmLabel.toUpperCase(),
+                            maxLines: 1,
+                            style: InkSignal.display(104).copyWith(
+                              shadows: [
+                                Shadow(
+                                  color: InkSignal.crimson.withValues(
+                                    alpha: 0.45 + beat * 0.35,
+                                  ),
+                                  blurRadius: 28 + beat * 26,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'WAKE QUEST LOCKED',
+                    style: InkSignal.mono(
+                      11,
+                      color: InkSignal.paper.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },
@@ -330,116 +351,149 @@ class _EpicAlarmFace extends StatelessWidget {
   }
 }
 
-class _QuestLockPanel extends StatelessWidget {
-  const _QuestLockPanel({
-    required this.name,
-    required this.quest,
-    required this.proof,
-    required this.questPlace,
-  });
+/// Three shockwave rings expanding outward from the time, forever.
+class _ShockwavePainter extends CustomPainter {
+  const _ShockwavePainter({required this.t});
 
-  final String name;
-  final String quest;
-  final String proof;
-  final String questPlace;
+  final double t;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
-      decoration: InkSignal.panel(color: const Color(0xFF0F131C)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'NARRATOR',
-                style: InkSignal.mono(
-                  10,
-                  color: InkSignal.paper.withValues(alpha: 0.44),
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'ALARM -> QUEST -> EPISODE',
-                style: InkSignal.mono(
-                  10,
-                  color: InkSignal.paper.withValues(alpha: 0.4),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 9),
-          Text(
-            '"$name. Up. $quest turns this off."',
-            style: InkSignal.ui(18, weight: FontWeight.w900),
-          ),
-          const SizedBox(height: 11),
-          Row(
-            children: [
-              Expanded(
-                child: _LockFact(label: 'QUEST', value: quest),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _LockFact(label: 'PROOF', value: proof),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            questPlace,
-            style: InkSignal.mono(
-              11,
-              color: InkSignal.paper.withValues(alpha: 0.52),
-            ),
-          ),
-        ],
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.shortestSide * 0.72;
+    for (var i = 0; i < 3; i++) {
+      final tt = (t + i / 3) % 1.0;
+      final radius = 84 + (maxRadius - 84) * Curves.easeOut.transform(tt);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.5 - tt * 2
+          ..color = InkSignal.crimson.withValues(alpha: (1 - tt) * 0.4),
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant _ShockwavePainter oldDelegate) =>
+      oldDelegate.t != t;
 }
 
-class _LockFact extends StatelessWidget {
-  const _LockFact({required this.label, required this.value});
+/// One compact line of quest facts — replaces the old narrator panel.
+class _QuestStrip extends StatelessWidget {
+  const _QuestStrip({required this.quest, required this.proof});
 
-  final String label;
-  final String value;
+  final String quest;
+  final String proof;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
+    Widget fact(String label, String value) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28),
+        color: Colors.black.withValues(alpha: 0.34),
         border: Border.all(
-          color: InkSignal.paper.withValues(alpha: 0.12),
+          color: InkSignal.paper.withValues(alpha: 0.16),
           width: 1.5,
         ),
         borderRadius: BorderRadius.circular(InkSignal.panelRadius),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
             style: InkSignal.mono(
-              9,
-              color: InkSignal.paper.withValues(alpha: 0.38),
+              10,
+              color: InkSignal.paper.withValues(alpha: 0.42),
             ),
           ),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: InkSignal.ui(14, weight: FontWeight.w800),
-            ),
+          const SizedBox(width: 7),
+          Text(
+            value.toUpperCase(),
+            style: InkSignal.ui(14, weight: FontWeight.w800),
           ),
         ],
+      ),
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        fact('QUEST', quest),
+        const SizedBox(width: 8),
+        fact('PROOF', proof),
+      ],
+    );
+  }
+}
+
+/// The single crimson action: a tall glowing slab that carries the mechanic
+/// in its own sublabel, so a half-asleep user needs no other copy.
+class _SirenSlab extends StatelessWidget {
+  const _SirenSlab({
+    super.key,
+    required this.quest,
+    required this.pulse,
+    required this.onTap,
+  });
+
+  final String quest;
+  final Animation<double> pulse;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedBuilder(
+        animation: pulse,
+        builder: (context, _) {
+          final beat = Curves.easeInOut.transform(pulse.value);
+          return Container(
+            height: 96,
+            width: double.infinity,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: InkSignal.crimson,
+              borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2 + beat * 0.4),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: InkSignal.crimson.withValues(alpha: 0.3 + beat * 0.3),
+                  blurRadius: 24 + beat * 20,
+                  spreadRadius: 1 + beat * 3,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'TURN OFF ALARM',
+                  style: InkSignal.ui(
+                    22,
+                    color: Colors.white,
+                    weight: FontWeight.w900,
+                    letterSpacing: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ENTER WAKE QUEST · ${quest.toUpperCase()}',
+                  style: InkSignal.mono(
+                    11,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -457,12 +511,12 @@ class _AlarmWaveform extends StatelessWidget {
       builder: (context, _) {
         final beat = Curves.easeInOut.transform(pulse.value);
         return SizedBox(
-          height: 28,
+          height: 30,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(23, (index) {
               final phase = math.sin(index * 0.9 + beat * math.pi * 2);
-              final height = 8 + phase.abs() * 16;
+              final height = 8 + phase.abs() * 18;
               final isCenter = (index - 11).abs() < 3;
               return Container(
                 width: 3,
@@ -480,117 +534,4 @@ class _AlarmWaveform extends StatelessWidget {
       },
     );
   }
-}
-
-class _AlarmShockPainter extends CustomPainter {
-  const _AlarmShockPainter({required this.beat});
-
-  final double beat;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final maxRadius = size.shortestSide / 2;
-
-    for (var i = 0; i < 4; i++) {
-      final t = ((beat + i * 0.23) % 1.0);
-      final radius = maxRadius * (0.38 + t * 0.58);
-      final alpha = (1 - t) * 0.34;
-      canvas.drawCircle(
-        center,
-        radius,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 4 - t * 2
-          ..color = InkSignal.crimson.withValues(alpha: alpha),
-      );
-    }
-
-    final slashPaint = Paint()
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.square
-      ..color = InkSignal.paper.withValues(alpha: 0.55);
-    for (final side in const [-1.0, 1.0]) {
-      final x = center.dx + side * size.width * 0.34;
-      canvas.drawLine(
-        Offset(x, center.dy - size.height * 0.34),
-        Offset(x + side * 18, center.dy - size.height * 0.45),
-        slashPaint,
-      );
-    }
-
-    final tickPaint = Paint()
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.square
-      ..color = InkSignal.crimson.withValues(alpha: 0.45);
-    for (var i = 0; i < 18; i++) {
-      if (i.isOdd) continue;
-      final angle = -math.pi / 2 + i * (math.pi * 2 / 18);
-      final outer = maxRadius * 0.98;
-      final inner = maxRadius * 0.88;
-      canvas.drawLine(
-        center + Offset(math.cos(angle), math.sin(angle)) * inner,
-        center + Offset(math.cos(angle), math.sin(angle)) * outer,
-        tickPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _AlarmShockPainter oldDelegate) =>
-      oldDelegate.beat != beat;
-}
-
-class _AlarmTicksPainter extends CustomPainter {
-  const _AlarmTicksPainter({required this.beat});
-
-  final double beat;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide * 0.38;
-    final paint = Paint()
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.square
-      ..color = InkSignal.paper.withValues(alpha: 0.22);
-
-    for (var i = 0; i < 12; i++) {
-      final angle = -math.pi / 2 + i * (math.pi * 2 / 12);
-      final length = i % 3 == 0 ? 11.0 : 6.0;
-      final p1 = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-      final p2 =
-          center + Offset(math.cos(angle), math.sin(angle)) * (radius - length);
-      canvas.drawLine(p1, p2, paint);
-    }
-
-    final handPaint = Paint()
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.square
-      ..color = InkSignal.crimson.withValues(alpha: 0.92);
-    final shake = (beat - 0.5) * 0.13;
-    canvas.drawLine(
-      center,
-      center +
-          Offset(
-                math.cos(-math.pi / 2 + shake),
-                math.sin(-math.pi / 2 + shake),
-              ) *
-              radius *
-              0.58,
-      handPaint,
-    );
-    canvas.drawLine(
-      center,
-      center +
-          Offset(math.cos(-0.08 - shake), math.sin(-0.08 - shake)) *
-              radius *
-              0.44,
-      handPaint..strokeWidth = 3,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _AlarmTicksPainter oldDelegate) =>
-      oldDelegate.beat != beat;
 }

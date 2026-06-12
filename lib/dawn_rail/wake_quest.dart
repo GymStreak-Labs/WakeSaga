@@ -25,11 +25,18 @@ class WakeQuest extends StatefulWidget {
   State<WakeQuest> createState() => _WakeQuestState();
 }
 
-class _WakeQuestState extends State<WakeQuest> {
+class _WakeQuestState extends State<WakeQuest>
+    with SingleTickerProviderStateMixin {
   static const int target = int.fromEnvironment(
     'WAKE_SAGA_QUEST_TARGET',
     defaultValue: 20,
   );
+
+  // Heartbeat for the still-ringing banner; stops the moment verify lands.
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat(reverse: true);
 
   late String _mode; // First-run Wake Quest label.
   int _count = 0;
@@ -51,6 +58,7 @@ class _WakeQuestState extends State<WakeQuest> {
   @override
   void dispose() {
     _advanceTimer?.cancel();
+    _pulse.dispose();
     super.dispose();
   }
 
@@ -81,6 +89,7 @@ class _WakeQuestState extends State<WakeQuest> {
   void _succeed() {
     if (_verified) return;
     HapticFeedback.heavyImpact();
+    _pulse.stop();
     setState(() => _verified = true);
     // Brief verify-green beat, then the earned unlock screen makes the reward
     // explicit before the title card and episode playback.
@@ -124,7 +133,17 @@ class _WakeQuestState extends State<WakeQuest> {
             children: [
               Column(
                 children: [
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 8),
+                  // The alarm never leaves the screen: a live siren strip that
+                  // snaps green the moment the quest verifies.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _AlarmStatusBanner(
+                      verified: _verified,
+                      pulse: _pulse,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: FittedBox(
@@ -132,23 +151,7 @@ class _WakeQuestState extends State<WakeQuest> {
                       child: SkewedDisplay(_instruction, size: 64),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      _verified
-                          ? 'ALARM OFF · TITLE CARD UNLOCKED'
-                          : 'ALARM RINGING · WAKE QUEST REQUIRED',
-                      textAlign: TextAlign.center,
-                      style: InkSignal.mono(
-                        12,
-                        color: _verified
-                            ? InkSignal.verifyGreen
-                            : InkSignal.paper.withValues(alpha: 0.54),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _QuestProtocol(
@@ -373,20 +376,67 @@ class _CounterRing extends StatelessWidget {
             SizedBox(
               width: 280,
               height: 280,
-              child: CustomPaint(
-                painter: _RingPainter(
-                  progress: count / target,
-                  color: verified ? InkSignal.verifyGreen : InkSignal.crimson,
-                ),
-                child: Center(
-                  child: Text(
-                    verified ? 'OFF' : '$count/$target',
-                    style: InkSignal.display(
-                      verified ? 110 : 84,
-                      color: verified ? InkSignal.verifyGreen : InkSignal.paper,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Speed-line burst lands only at the moment of truth.
+                  AnimatedOpacity(
+                    opacity: verified ? 1 : 0,
+                    duration: const Duration(milliseconds: 180),
+                    child: const CustomPaint(
+                      painter: SpeedLinesPainter(
+                        color: InkSignal.verifyGreen,
+                        opacity: 0.2,
+                      ),
                     ),
                   ),
-                ),
+                  CustomPaint(
+                    painter: _RingPainter(
+                      progress: count / target,
+                      color: verified
+                          ? InkSignal.verifyGreen
+                          : InkSignal.crimson,
+                    ),
+                    child: Center(
+                      // Pop on every tap: re-keyed tween snaps to 1.16x and
+                      // settles, so each rep visibly lands.
+                      child: TweenAnimationBuilder<double>(
+                        key: ValueKey(verified ? -1 : count),
+                        tween: Tween(begin: count == 0 ? 1.0 : 1.16, end: 1.0),
+                        duration: const Duration(milliseconds: 170),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, scale, child) =>
+                            Transform.scale(scale: scale, child: child),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              verified ? 'OFF' : '$count',
+                              style: InkSignal.display(
+                                verified ? 110 : 96,
+                                color: verified
+                                    ? InkSignal.verifyGreen
+                                    : InkSignal.paper,
+                              ),
+                            ),
+                            if (!verified) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '${target - count} MORE TO SILENCE',
+                                style: InkSignal.mono(
+                                  12,
+                                  color: InkSignal.paper.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -419,23 +469,136 @@ class _RingPainter extends CustomPainter {
       ..strokeWidth = 10
       ..color = InkSignal.inkBorder;
     canvas.drawCircle(center, radius, track);
+
+    // Milestone ticks every quarter turn so progress reads at a glance.
+    final tick = Paint()
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.square
+      ..color = InkSignal.paper.withValues(alpha: 0.3);
+    for (var i = 0; i < 4; i++) {
+      final angle = -math.pi / 2 + i * math.pi / 2;
+      final dir = Offset(math.cos(angle), math.sin(angle));
+      canvas.drawLine(
+        center + dir * (radius - 12),
+        center + dir * (radius + 12),
+        tick,
+      );
+    }
+
     final fill = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10
-      ..strokeCap = StrokeCap.butt
+      ..strokeCap = StrokeCap.round
       ..color = color;
+    final sweep = 2 * math.pi * progress.clamp(0.0, 1.0);
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
-      2 * math.pi * progress.clamp(0.0, 1.0),
+      sweep,
       false,
       fill,
     );
+    // Glowing tip marks the live edge of progress.
+    if (progress > 0 && progress < 1) {
+      final tipAngle = -math.pi / 2 + sweep;
+      final tip =
+          center + Offset(math.cos(tipAngle), math.sin(tipAngle)) * radius;
+      canvas.drawCircle(
+        tip,
+        9,
+        Paint()
+          ..color = color.withValues(alpha: 0.45)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+      );
+      canvas.drawCircle(tip, 6, Paint()..color = color);
+    }
   }
 
   @override
   bool shouldRepaint(covariant _RingPainter oldDelegate) =>
       oldDelegate.progress != progress || oldDelegate.color != color;
+}
+
+/// Persistent alarm state strip. While ringing it pulses crimson with a live
+/// mini waveform; on verify it snaps to a calm green "ALARM SILENCED".
+class _AlarmStatusBanner extends StatelessWidget {
+  const _AlarmStatusBanner({required this.verified, required this.pulse});
+
+  final bool verified;
+  final Animation<double> pulse;
+
+  @override
+  Widget build(BuildContext context) {
+    if (verified) {
+      return Container(
+        height: 46,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: InkSignal.verifyGreen.withValues(alpha: 0.14),
+          border: Border.all(
+            color: InkSignal.verifyGreen.withValues(alpha: 0.85),
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+        ),
+        child: Text(
+          'ALARM SILENCED · EPISODE INCOMING',
+          style: InkSignal.mono(12, color: InkSignal.verifyGreen),
+        ),
+      );
+    }
+    return AnimatedBuilder(
+      animation: pulse,
+      builder: (context, _) {
+        final beat = Curves.easeInOut.transform(pulse.value);
+        return Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: InkSignal.crimson.withValues(alpha: 0.08 + beat * 0.08),
+            border: Border.all(
+              color: InkSignal.crimson.withValues(alpha: 0.5 + beat * 0.4),
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+          ),
+          child: Row(
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(7, (index) {
+                  final phase = math.sin(index * 1.1 + beat * math.pi * 2);
+                  return Container(
+                    width: 2.5,
+                    height: 6 + phase.abs() * 12,
+                    margin: const EdgeInsets.symmetric(horizontal: 1.6),
+                    decoration: BoxDecoration(
+                      color: InkSignal.crimson.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(1),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'ALARM RINGING',
+                  style: InkSignal.mono(12, color: InkSignal.crimson),
+                ),
+              ),
+              Text(
+                'QUEST SILENCES IT',
+                style: InkSignal.mono(
+                  10,
+                  color: InkSignal.paper.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 /// Simulated camera surface for Sky Photo: halftone-framed viewfinder with

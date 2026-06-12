@@ -10,9 +10,12 @@ import '../widgets/cuts.dart';
 import '../widgets/screentone.dart';
 import 'title_card_slam.dart';
 
-/// Dawn Rail step 3 — the earned unlock beat.
-/// Wake Quest has silenced the alarm; this screen makes the reward explicit
-/// before the title card slams and the Morning Episode auto-plays.
+/// Dawn Rail step 3 — the earned unlock beat, staged like an anime cut:
+/// 1. silence stamp — ALARM OFF slams in over black (the quiet after the
+///    siren is the first reward);
+/// 2. burst — speed lines flash out from the stamp;
+/// 3. payoff — MORNING EPISODE UNLOCKED rises in gold (the one gold moment
+///    of the morning) before the title card slams.
 class EpisodeUnlock extends StatefulWidget {
   const EpisodeUnlock({super.key});
 
@@ -23,16 +26,34 @@ class EpisodeUnlock extends StatefulWidget {
 class _EpisodeUnlockState extends State<EpisodeUnlock>
     with SingleTickerProviderStateMixin {
   Timer? _hold;
-  late final AnimationController _burst = AnimationController(
+  bool _payoffHapticFired = false;
+  late final AnimationController _seq = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 860),
-  )..forward();
+    duration: const Duration(milliseconds: 2150),
+  );
+
+  // Stage windows on the single sequence controller.
+  static const _stamp = Interval(0.0, 0.30, curve: Curves.easeOutBack);
+  static const _burst = Interval(0.24, 0.52, curve: Curves.easeOut);
+  static const _payoff = Interval(0.40, 0.72, curve: Curves.easeOutCubic);
+  static const _footer = Interval(0.72, 1.0, curve: Curves.easeOut);
 
   @override
   void initState() {
     super.initState();
     HapticFeedback.heavyImpact();
-    _hold = Timer(const Duration(milliseconds: 1850), _advance);
+    _seq
+      ..addListener(_onTick)
+      ..forward();
+    _hold = Timer(const Duration(milliseconds: 2350), _advance);
+  }
+
+  void _onTick() {
+    // Second impact exactly when the gold payoff enters.
+    if (!_payoffHapticFired && _seq.value >= 0.40) {
+      _payoffHapticFired = true;
+      HapticFeedback.mediumImpact();
+    }
   }
 
   void _advance() {
@@ -45,7 +66,7 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
   @override
   void dispose() {
     _hold?.cancel();
-    _burst.dispose();
+    _seq.dispose();
     super.dispose();
   }
 
@@ -56,117 +77,89 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
       canPop: false,
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.42),
-                  radius: 1.15,
-                  colors: [Color(0xFF2E0D18), Colors.black],
+        body: AnimatedBuilder(
+          animation: _seq,
+          builder: (context, _) {
+            final stamp = _stamp.transform(_seq.value);
+            final burst = _burst.transform(_seq.value);
+            final payoff = _payoff.transform(_seq.value);
+            final footer = _footer.transform(_seq.value);
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // The room stays near-black: the silence is the scene.
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment(0, -0.42),
+                      radius: 1.15,
+                      colors: [Color(0xFF14202A), Colors.black],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const CustomPaint(painter: SpeedLinesPainter(opacity: 0.18)),
-            const CustomPaint(painter: ScreentonePainter(opacity: 0.045)),
-            AnimatedBuilder(
-              animation: _burst,
-              builder: (context, _) {
-                final value = Curves.easeOutBack.transform(
-                  _burst.value.clamp(0.0, 1.0),
-                );
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Center(
-                      child: Transform.rotate(
-                        angle: (-9 + (5 * value)) * math.pi / 180,
-                        child: Transform.scale(
-                          scale: 0.78 + (0.22 * value),
-                          child: Container(
-                            width: 280,
-                            height: 280,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: InkSignal.crimson,
-                                width: 5,
+                const CustomPaint(painter: ScreentonePainter(opacity: 0.045)),
+                // Stage 2 — burst flashes out then settles to a faint hold.
+                Opacity(
+                  opacity: burst == 0
+                      ? 0
+                      : (0.12 + 0.5 * (1 - burst)) * burst.clamp(0.0, 1.0),
+                  child: const CustomPaint(
+                    painter: SpeedLinesPainter(opacity: 1),
+                  ),
+                ),
+                // Stage 1 — the ALARM OFF stamp slams down to size.
+                Align(
+                  alignment: const Alignment(0, -0.34),
+                  child: Opacity(
+                    opacity: stamp.clamp(0.0, 1.0),
+                    child: Transform.rotate(
+                      angle: -6 * math.pi / 180,
+                      child: Transform.scale(
+                        scale: 1.7 - 0.7 * stamp,
+                        child: Container(
+                          width: 252,
+                          height: 252,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withValues(alpha: 0.55),
+                            border: Border.all(
+                              color: InkSignal.verifyGreen,
+                              width: 5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: InkSignal.verifyGreen.withValues(
+                                  alpha: 0.34,
+                                ),
+                                blurRadius: 48,
+                                spreadRadius: 6,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: InkSignal.crimson.withValues(
-                                    alpha: 0.42,
-                                  ),
-                                  blurRadius: 54,
-                                  spreadRadius: 8,
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'ALARM',
-                                  style: InkSignal.mono(
-                                    13,
-                                    color: InkSignal.paper.withValues(
-                                      alpha: 0.62,
-                                    ),
-                                  ),
-                                ),
-                                SkewedDisplay(
-                                  'OFF',
-                                  size: 86,
-                                  color: InkSignal.verifyGreen,
-                                ),
-                              ],
-                            ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 24,
-                      right: 24,
-                      top: MediaQuery.paddingOf(context).top + 42,
-                      child: Opacity(
-                        opacity: _burst.value.clamp(0.0, 1.0),
-                        child: Text(
-                          'QUEST CLEARED · ${state.quest.toUpperCase()}',
-                          textAlign: TextAlign.center,
-                          style: InkSignal.mono(
-                            12,
-                            color: InkSignal.paper.withValues(alpha: 0.55),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 24,
-                      right: 24,
-                      bottom: MediaQuery.paddingOf(context).bottom + 48,
-                      child: Transform.translate(
-                        offset: Offset(0, 28 * (1 - _burst.value)),
-                        child: Opacity(
-                          opacity: _burst.value.clamp(0.0, 1.0),
+                          alignment: Alignment.center,
                           child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              const SkewedDisplay('MORNING EPISODE', size: 36),
-                              const SkewedDisplay(
-                                'UNLOCKED',
-                                size: 52,
-                                color: InkSignal.crimson,
-                              ),
-                              const SizedBox(height: 12),
                               Text(
-                                'TITLE CARD INCOMING',
+                                'ALARM',
                                 style: InkSignal.mono(
-                                  12,
+                                  13,
                                   color: InkSignal.paper.withValues(
-                                    alpha: 0.54,
+                                    alpha: 0.62,
                                   ),
+                                ),
+                              ),
+                              const SkewedDisplay(
+                                'OFF',
+                                size: 92,
+                                color: InkSignal.verifyGreen,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'QUEST CLEARED · ${state.quest.toUpperCase()}',
+                                style: InkSignal.mono(
+                                  10,
+                                  color: InkSignal.paper.withValues(alpha: 0.5),
                                 ),
                               ),
                             ],
@@ -174,11 +167,69 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
                         ),
                       ),
                     ),
-                  ],
-                );
-              },
-            ),
-          ],
+                  ),
+                ),
+                // Stage 3 — the gold payoff rises from the lower third.
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: MediaQuery.paddingOf(context).bottom + 64,
+                  child: Transform.translate(
+                    offset: Offset(0, 36 * (1 - payoff)),
+                    child: Opacity(
+                      opacity: payoff.clamp(0.0, 1.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'EP ${state.nextEpisode}',
+                            style: InkSignal.mono(
+                              12,
+                              color: InkSignal.paper.withValues(alpha: 0.55),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const SkewedDisplay('MORNING EPISODE', size: 36),
+                          Transform(
+                            transform: Matrix4.skewX(-6 * math.pi / 180),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'UNLOCKED',
+                              textAlign: TextAlign.center,
+                              style:
+                                  InkSignal.display(
+                                    56,
+                                    color: InkSignal.gold,
+                                  ).copyWith(
+                                    shadows: [
+                                      Shadow(
+                                        color: InkSignal.gold.withValues(
+                                          alpha: 0.45 * payoff,
+                                        ),
+                                        blurRadius: 30,
+                                      ),
+                                    ],
+                                  ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Opacity(
+                            opacity: footer.clamp(0.0, 1.0),
+                            child: Text(
+                              'TITLE CARD INCOMING',
+                              style: InkSignal.mono(
+                                12,
+                                color: InkSignal.paper.withValues(alpha: 0.54),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
