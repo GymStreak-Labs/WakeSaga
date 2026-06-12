@@ -611,7 +611,11 @@ class _TodayTabState extends State<TodayTab>
             style: InkSignal.ui(22, weight: FontWeight.w700),
           ),
           const SizedBox(height: 20),
-          const _LoopRail(activeIndex: 4),
+          _LoopRail(
+            activeIndex: 4,
+            state: state,
+            title: "THIS MORNING'S WAKE PATH",
+          ),
           const Spacer(),
           if (card != null)
             Row(
@@ -659,7 +663,11 @@ class _TodayTabState extends State<TodayTab>
             style: InkSignal.ui(22, weight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
-          const _LoopRail(activeIndex: 5),
+          _LoopRail(
+            activeIndex: 5,
+            state: state,
+            title: "WHEN TOMORROW'S ALARM RINGS",
+          ),
           const SizedBox(height: 20),
           // LOCK IN steps down from hero circle to a breathing slab: still
           // the screen's one crimson element, but the alarm loop above —
@@ -906,7 +914,11 @@ class _TodayTabState extends State<TodayTab>
             textAlign: TextAlign.left,
           ),
           const SizedBox(height: 20),
-          const _LoopRail(activeIndex: 0),
+          _LoopRail(
+            activeIndex: 0,
+            state: state,
+            title: "TOMORROW'S WAKE PATH",
+          ),
           const SizedBox(height: 18),
           SlabButton(
             "LOCK TOMORROW'S COLD OPEN",
@@ -977,7 +989,7 @@ class _TodayTabState extends State<TodayTab>
             ),
           ),
           const SizedBox(height: 22),
-          const _LoopRail(activeIndex: 0),
+          _LoopRail(activeIndex: 0, state: state, title: 'COMEBACK WAKE PATH'),
           const Spacer(),
           SlabButton(
             'ARM COMEBACK QUEST',
@@ -1080,66 +1092,160 @@ class _Stamp extends StatelessWidget {
 }
 
 class _LoopRail extends StatelessWidget {
-  const _LoopRail({required this.activeIndex});
+  const _LoopRail({
+    required this.activeIndex,
+    required this.state,
+    required this.title,
+  });
 
   final int activeIndex;
-
-  static const _steps = ['Alarm', 'Quest', 'Title', 'Episode', 'Card', 'Next'];
+  final AppState state;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
+    final questLabel = state.questIsRandom ? 'Random draw' : state.quest;
+    final completedIndex = activeIndex <= 0
+        ? 0
+        : activeIndex >= 4
+        ? 2
+        : 1;
+    final steps = [
+      _WakePathStep(
+        number: '1',
+        title: 'Alarm rings',
+        detail: '${state.alarmLabel} · ${state.wakeJolt}',
+      ),
+      _WakePathStep(
+        number: '2',
+        title: 'Clear Wake Quest',
+        detail: '$questLabel turns the alarm off',
+      ),
+      _WakePathStep(
+        number: '3',
+        title: 'Episode unlocks',
+        detail: 'Morning Episode ${state.nextEpisode} plays',
+      ),
+    ];
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
       decoration: InkSignal.panel(color: InkSignal.base),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < _steps.length; i++) ...[
-            Expanded(
-              child: Column(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: i <= activeIndex
-                          ? InkSignal.paper
-                          : Colors.transparent,
-                      border: Border.all(
-                        color: i <= activeIndex
-                            ? InkSignal.paper
-                            : InkSignal.inkBorder,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _steps[i].toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: InkSignal.mono(
-                      9,
-                      color: i == activeIndex
-                          ? InkSignal.paper
-                          : InkSignal.paper.withValues(alpha: 0.38),
-                    ),
-                  ),
-                ],
-              ),
+          Text(
+            title,
+            style: InkSignal.mono(
+              10,
+              color: InkSignal.paper.withValues(alpha: 0.42),
             ),
-            if (i != _steps.length - 1)
-              Container(
-                width: 10,
-                height: 2,
-                color: i < activeIndex
-                    ? InkSignal.paper.withValues(alpha: 0.7)
-                    : InkSignal.inkBorder,
+          ),
+          const SizedBox(height: 10),
+          for (var i = 0; i < steps.length; i++) ...[
+            _WakePathRow(step: steps[i], active: i <= completedIndex),
+            if (i != steps.length - 1)
+              Padding(
+                padding: const EdgeInsets.only(left: 13, top: 3, bottom: 3),
+                child: Container(
+                  width: 2,
+                  height: 12,
+                  color: i < completedIndex
+                      ? InkSignal.paper.withValues(alpha: 0.62)
+                      : InkSignal.inkBorder,
+                ),
               ),
           ],
         ],
       ),
+    );
+  }
+}
+
+class _WakePathStep {
+  const _WakePathStep({
+    required this.number,
+    required this.title,
+    required this.detail,
+  });
+
+  final String number;
+  final String title;
+  final String detail;
+}
+
+class _WakePathRow extends StatelessWidget {
+  const _WakePathRow({required this.step, required this.active});
+
+  final _WakePathStep step;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active
+        ? InkSignal.paper
+        : InkSignal.paper.withValues(alpha: 0.35);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: active ? InkSignal.paper : Colors.transparent,
+            border: Border.all(
+              color: active ? InkSignal.paper : InkSignal.inkBorder,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            step.number,
+            style: InkSignal.mono(
+              11,
+              color: active
+                  ? InkSignal.base
+                  : InkSignal.paper.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  step.title.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: InkSignal.ui(
+                    13,
+                    weight: FontWeight.w900,
+                    letterSpacing: 0.7,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  step.detail,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: InkSignal.mono(
+                    10,
+                    color: InkSignal.paper.withValues(
+                      alpha: active ? 0.55 : 0.32,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
