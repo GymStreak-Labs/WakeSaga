@@ -128,7 +128,7 @@ class _AlarmStudioState extends State<AlarmStudio> {
                   const SizedBox(height: 24),
                   _sectionLabel('WAKE QUEST — TURNS THE ALARM OFF'),
                   const SizedBox(height: 10),
-                  for (final mission in WakeMission.all) ...[
+                  for (final mission in WakeMission.selectable) ...[
                     _missionCard(mission),
                     const SizedBox(height: 8),
                   ],
@@ -804,7 +804,7 @@ class _AlarmStudioState extends State<AlarmStudio> {
           Text(
             _enabled
                 ? '${formatTimeOfDay(_time)} · $_daysSummary · '
-                      '${_quest.toUpperCase()} silences it'
+                      '${_quest == WakeMission.randomName ? "TONIGHT'S RANDOM DRAW" : _quest.toUpperCase()} silences it'
                 : 'No alarm will ring. Tomorrow stays unwritten.',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

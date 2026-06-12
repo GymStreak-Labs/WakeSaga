@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../alarm/wake_missions.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/cuts.dart';
@@ -74,6 +75,10 @@ class _DawnTakeoverState extends State<DawnTakeover>
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
+    // Random Quest resolves to today's concrete mission before anything
+    // renders — the ringing screen never says "Random", it names the quest.
+    final quest = state.resolvedQuest;
+    final mission = WakeMission.byName(quest);
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -97,18 +102,22 @@ class _DawnTakeoverState extends State<DawnTakeover>
                               TimeOfDay.fromDateTime(state.clock()),
                             ),
                             alarmLabel: state.alarmLabel,
-                            quest: state.quest,
+                            quest: quest,
                             pulse: _pulse,
                             siren: _siren,
                           ),
                           const SizedBox(height: 6),
                           StrokedSubtitle(
                             '"${state.userName}. Up. '
-                            '${state.quest} turns this off."',
+                            '$quest turns this off."',
                             size: 19,
                           ),
                           const SizedBox(height: 16),
-                          _QuestStrip(quest: state.quest, proof: state.proof),
+                          _QuestStrip(
+                            quest: quest,
+                            proof: mission.proof,
+                            randomDraw: state.questIsRandom,
+                          ),
                         ],
                       ),
                     ),
@@ -120,7 +129,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
                         // itself says so.
                         _SirenSlab(
                           key: const Key('beginQuest'),
-                          quest: state.quest,
+                          quest: quest,
                           pulse: _pulse,
                           onTap: _beginQuest,
                         ),
@@ -412,10 +421,17 @@ class _ShockwavePainter extends CustomPainter {
 
 /// One compact line of quest facts — replaces the old narrator panel.
 class _QuestStrip extends StatelessWidget {
-  const _QuestStrip({required this.quest, required this.proof});
+  const _QuestStrip({
+    required this.quest,
+    required this.proof,
+    this.randomDraw = false,
+  });
 
   final String quest;
   final String proof;
+
+  /// True when this mission came from the Random Quest nightly draw.
+  final bool randomDraw;
 
   @override
   Widget build(BuildContext context) {
@@ -452,7 +468,11 @@ class _QuestStrip extends StatelessWidget {
       alignment: WrapAlignment.center,
       spacing: 8,
       runSpacing: 8,
-      children: [fact('QUEST', quest), fact('PROOF', proof)],
+      children: [
+        fact('QUEST', quest),
+        fact('PROOF', proof),
+        if (randomDraw) fact('DRAWN', 'Tonight'),
+      ],
     );
   }
 }

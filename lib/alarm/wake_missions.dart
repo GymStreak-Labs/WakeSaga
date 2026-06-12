@@ -66,7 +66,33 @@ class WakeMission {
     ),
   ];
 
-  static WakeMission byName(String name) => all.firstWhere(
+  /// Sentinel mission id: WakeSaga draws a concrete mission from [rotation]
+  /// each calendar day. Resolution happens in AppState.resolvedQuest — the
+  /// Dawn Rail never shows "Random" as the thing to do.
+  static const String randomName = 'Random Quest';
+
+  static const WakeMission random = WakeMission(
+    name: randomName,
+    action: 'A different mission every morning — WakeSaga draws it for you.',
+    proof: 'Rotates nightly',
+    bestFor: 'Breaking autopilot',
+    icon: Icons.shuffle,
+  );
+
+  /// What the Alarm Studio picker offers. Get Up stays the simple default,
+  /// then Random is visible before the heavier camera missions.
+  static List<WakeMission> get selectable => [
+    all.first,
+    random,
+    ...all.skip(1),
+  ];
+
+  /// The pool Random Quest draws from. Shake is excluded — it stays the
+  /// quick fallback, never the headline quest.
+  static List<WakeMission> get rotation =>
+      all.where((mission) => mission.name != 'Shake').toList();
+
+  static WakeMission byName(String name) => selectable.firstWhere(
     (mission) => mission.name == name,
     orElse: () => all.first,
   );

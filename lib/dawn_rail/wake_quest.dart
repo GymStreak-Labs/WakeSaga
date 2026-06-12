@@ -52,7 +52,8 @@ class _WakeQuestState extends State<WakeQuest>
     super.didChangeDependencies();
     if (!_modeInitialized) {
       final state = AppScope.of(context);
-      _mode = state.quest;
+      // resolvedQuest: Random Quest becomes a concrete mission for this run.
+      _mode = state.resolvedQuest;
       _fallback = state.fallbackQuest == _mode
           ? (_mode == 'Shake' ? 'Get Up' : 'Shake')
           : state.fallbackQuest;

@@ -39,11 +39,12 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
     final mission = state.missionText.isEmpty
         ? 'hold the line until tonight'
         : state.missionText;
+    final quest = state.resolvedQuest;
     _lines = [
       '${state.userName}. Episode $ep. You actually stood up.',
       '${state.rival} tried to keep the opening scene.',
       'The mission: $mission.',
-      '${state.quest} is cleared. ${state.wakeJolt} is live.',
+      '$quest is cleared. ${state.wakeJolt} is live.',
       'Go. The episode is live.',
     ];
     _armTicker();

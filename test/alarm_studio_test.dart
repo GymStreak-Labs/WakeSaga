@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wakesaga/alarm/alarm_engine.dart';
+import 'package:wakesaga/alarm/wake_missions.dart';
 import 'package:wakesaga/main.dart';
 import 'package:wakesaga/state/app_state.dart';
 
@@ -43,7 +44,7 @@ void main() {
     expect(find.byKey(const Key('armAlarm')), findsOneWidget);
   });
 
-  testWidgets('Alarm Studio saves the quest setup and arms the alarm', (
+  testWidgets('Alarm Studio saves the default quest setup and arms the alarm', (
     WidgetTester tester,
   ) async {
     final state = mainAppState();
@@ -52,36 +53,17 @@ void main() {
     await tester.tap(find.byKey(const Key('alarmAnchor')));
     await settle(tester);
 
-    // Pick a mission and open quest rules for difficulty + fallback.
-    await tester.tap(find.byKey(const Key('missionObject Hunt')));
-    await tester.pump();
-
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('sectionQuestRules')),
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.byKey(const Key('sectionQuestRules')));
-    await tester.pump();
-    await tester.scrollUntilVisible(
-      find.byKey(const Key('difficultyHard')),
-      120,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.byKey(const Key('difficultyHard')));
-    await tester.pump();
-
     await tester.tap(find.byKey(const Key('armAlarm')));
     await settle(tester);
 
-    expect(state.quest, 'Object Hunt');
-    expect(state.difficulty, 'Hard');
+    expect(state.quest, 'Get Up');
+    expect(state.difficulty, 'Normal');
     expect(state.alarmEnabled, isTrue);
     expect(state.alarmScheduleConfirmed, isTrue);
     expect(state.alarmScheduleError, isNull);
     // Back on Today, the card reports the confirmed schedule truthfully.
     expect(find.textContaining(' - ARMED'), findsOneWidget);
-    expect(find.textContaining('OBJECT HUNT'), findsWidgets);
+    expect(find.textContaining('GET UP'), findsWidgets);
   });
 
   testWidgets('saving with the alarm off never claims armed', (
@@ -101,5 +83,35 @@ void main() {
     expect(state.alarmEnabled, isFalse);
     expect(state.alarmScheduleConfirmed, isFalse);
     expect(find.textContaining('EP 17 - ALARM OFF'), findsOneWidget);
+  });
+
+  testWidgets('Random Quest is selectable and Today explains the rotation', (
+    WidgetTester tester,
+  ) async {
+    final state = mainAppState();
+    await pumpShell(tester, state);
+
+    await tester.tap(find.byKey(const Key('alarmAnchor')));
+    await settle(tester);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('missionRandom Quest')),
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const Key('missionRandom Quest')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('armAlarm')));
+    await settle(tester);
+
+    expect(state.quest, WakeMission.randomName);
+    // The Dawn Rail will run a concrete mission, never the sentinel.
+    expect(state.resolvedQuest, isNot(WakeMission.randomName));
+    expect(state.resolvedQuest, isNot('Shake'));
+    // Today's Next Alarm card explains the rotation instead of jargon.
+    expect(
+      find.textContaining('QUEST RANDOM — A NEW MISSION EACH MORNING'),
+      findsOneWidget,
+    );
   });
 }

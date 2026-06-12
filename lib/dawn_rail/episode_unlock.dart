@@ -73,6 +73,7 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
+    final quest = state.resolvedQuest;
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -156,7 +157,7 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'QUEST CLEARED · ${state.quest.toUpperCase()}',
+                                'QUEST CLEARED · ${quest.toUpperCase()}',
                                 style: InkSignal.mono(
                                   10,
                                   color: InkSignal.paper.withValues(alpha: 0.5),

@@ -398,10 +398,14 @@ class _TodayTabState extends State<TodayTab>
               ),
               const SizedBox(height: 8),
               Text(
-                'QUEST ${mission.name.toUpperCase()} · '
-                '${mission.proof.toUpperCase()} · '
-                '${state.difficulty.toUpperCase()} · '
-                'FALLBACK ${state.fallbackQuest.toUpperCase()}',
+                state.questIsRandom
+                    ? 'QUEST RANDOM — A NEW MISSION EACH MORNING · '
+                          '${state.difficulty.toUpperCase()} · '
+                          'FALLBACK ${state.fallbackQuest.toUpperCase()}'
+                    : 'QUEST ${mission.name.toUpperCase()} · '
+                          '${mission.proof.toUpperCase()} · '
+                          '${state.difficulty.toUpperCase()} · '
+                          'FALLBACK ${state.fallbackQuest.toUpperCase()}',
                 maxLines: 2,
                 style: InkSignal.mono(
                   10,
@@ -630,7 +634,6 @@ class _TodayTabState extends State<TodayTab>
   }
 
   Widget _day(AppState state) {
-    final width = MediaQuery.sizeOf(context).width;
     final card = state.mintedCards.isEmpty ? null : state.mintedCards.last;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -655,51 +658,57 @@ class _TodayTabState extends State<TodayTab>
             textAlign: TextAlign.center,
             style: InkSignal.ui(22, weight: FontWeight.w700),
           ),
+          const SizedBox(height: 16),
+          const _LoopRail(activeIndex: 5),
           const SizedBox(height: 20),
-          // The one crimson element: a breathing LOCK IN circle.
-          Center(
-            child: ScaleTransition(
-              scale: Tween(begin: 1.0, end: 1.035).animate(
-                CurvedAnimation(parent: _breathe, curve: Curves.easeInOut),
-              ),
-              child: GestureDetector(
-                key: const Key('lockInButton'),
-                onTap: _openLockIn,
-                child: Container(
-                  width: width * 0.46,
-                  height: width * 0.46,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: InkSignal.crimson,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x66FF2E4C),
-                        blurRadius: 48,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'LOCK IN',
-                    style: InkSignal.ui(
-                      28,
-                      color: Colors.white,
-                      weight: FontWeight.w900,
-                      letterSpacing: 1.5,
+          // LOCK IN steps down from hero circle to a breathing slab: still
+          // the screen's one crimson element, but the alarm loop above —
+          // Next Alarm card + loop rail — owns the day band now.
+          ScaleTransition(
+            scale: Tween(begin: 1.0, end: 1.02).animate(
+              CurvedAnimation(parent: _breathe, curve: Curves.easeInOut),
+            ),
+            child: GestureDetector(
+              key: const Key('lockInButton'),
+              onTap: _openLockIn,
+              child: Container(
+                height: 86,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: InkSignal.crimson,
+                  borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x4DFF2E4C),
+                      blurRadius: 28,
+                      spreadRadius: 2,
                     ),
-                  ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'LOCK IN',
+                      style: InkSignal.ui(
+                        22,
+                        color: Colors.white,
+                        weight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '20s of hype before gym · study · work',
+                      style: InkSignal.ui(
+                        13,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        weight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '20s of hype before gym · study · work',
-            textAlign: TextAlign.center,
-            style: InkSignal.ui(
-              15,
-              color: InkSignal.paper.withValues(alpha: 0.45),
             ),
           ),
           const SizedBox(height: 18),
@@ -718,8 +727,6 @@ class _TodayTabState extends State<TodayTab>
                 ),
               ],
             ),
-          const SizedBox(height: 12),
-          const _LoopRail(activeIndex: 5),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../alarm/wake_missions.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/screentone.dart';
@@ -76,6 +77,8 @@ class _CardMintState extends State<CardMint>
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
+    final quest = state.resolvedQuest;
+    final mission = WakeMission.byName(quest);
     final height = MediaQuery.sizeOf(context).height;
     return PopScope(
       canPop: false,
@@ -101,8 +104,8 @@ class _CardMintState extends State<CardMint>
                       foil: _foil,
                       arcNumber: state.arcNumber,
                       arcDay: state.arcDay,
-                      quest: state.quest,
-                      proof: state.proof,
+                      quest: quest,
+                      proof: mission.proof,
                       shimmer: _shimmer,
                     ),
                   ),

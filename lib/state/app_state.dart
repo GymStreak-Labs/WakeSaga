@@ -206,6 +206,20 @@ class AppState extends ChangeNotifier {
 
   String get alarmLabel => formatTimeOfDay(alarmTime);
 
+  bool get questIsRandom => quest == WakeMission.randomName;
+
+  /// The concrete mission the Dawn Rail runs. Random Quest resolves by
+  /// calendar date, so it is stable across rebuilds within a run and rotates
+  /// nightly. Shake never comes up — it stays fallback-only.
+  String get resolvedQuest => resolveQuestForDate(clock());
+
+  String resolveQuestForDate(DateTime date) {
+    if (!questIsRandom) return quest;
+    final pool = WakeMission.rotation;
+    final seed = date.year * 372 + date.month * 31 + date.day;
+    return pool[seed % pool.length].name;
+  }
+
   bool get alarmScheduleConfirmed =>
       scheduledAlarm != null && scheduledAlarm!.plan.id == activeAlarmPlan?.id;
 
