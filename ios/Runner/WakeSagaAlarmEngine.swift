@@ -287,7 +287,7 @@ final class WakeSagaAlarmEngine {
     engineMode: String
   ) -> [String: Any] {
     [
-      "plan": plan,
+      "plan": plistSafeDictionary(plan),
       "scheduledFor": isoString(scheduledFor),
       "engineMode": engineMode,
     ]
@@ -388,5 +388,30 @@ final class WakeSagaAlarmEngine {
 
   private func isoString(_ date: Date) -> String {
     ISO8601DateFormatter().string(from: date)
+  }
+
+  private func plistSafeDictionary(_ dictionary: [String: Any]) -> [String: Any] {
+    dictionary.reduce(into: [String: Any]()) { result, entry in
+      if let safeValue = plistSafeValue(entry.value) {
+        result[entry.key] = safeValue
+      }
+    }
+  }
+
+  private func plistSafeArray(_ array: [Any]) -> [Any] {
+    array.compactMap(plistSafeValue)
+  }
+
+  private func plistSafeValue(_ value: Any) -> Any? {
+    if value is NSNull {
+      return nil
+    }
+    if let dictionary = value as? [String: Any] {
+      return plistSafeDictionary(dictionary)
+    }
+    if let array = value as? [Any] {
+      return plistSafeArray(array)
+    }
+    return value
   }
 }
