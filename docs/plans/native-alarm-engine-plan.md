@@ -7,17 +7,21 @@ experience. Native code owns waking the device and launching that experience.
 ## Product Loop
 
 1. The user arms tomorrow's episode during onboarding or the Today tab.
-2. WakeSaga persists an `AlarmPlan`: alarm id, time, repeat rhythm, quest,
-   mission, narrator, episode number, and fallback rule.
+2. WakeSaga persists both app state and an `AlarmPlan`: alarm id, time, repeat
+   rhythm, quest, mission, narrator, episode number, fallback rule, paywall
+   state, first-run completion, and expected-fire record.
 3. The native alarm engine schedules the OS alarm.
 4. When the alarm fires, the user sees a prominent system alarm surface.
 5. The system surface opens WakeSaga into the Dawn Rail.
-6. WakeSaga shows the epic in-app alarm takeover and starts the local jolt/siren.
-7. The user enters Wake Quest.
-8. Completing Wake Quest silences the in-app alarm, records the clear, reveals
-   `MORNING EPISODE UNLOCKED`, then plays the Morning Episode.
-9. If the user uses an OS/system stop path, WakeSaga records a Filler/Emergency
-   Stop instead of pretending the quest was cleared.
+6. WakeSaga drains the native launch alarm before deciding whether to show
+   onboarding, main app, or Dawn Rail.
+7. WakeSaga stops/transfers the OS alarm signal into the in-app jolt/siren.
+8. WakeSaga shows the epic in-app alarm takeover.
+9. The user enters Wake Quest.
+10. Completing Wake Quest silences the in-app alarm, records the clear, reveals
+    `MORNING EPISODE UNLOCKED`, then plays the Morning Episode.
+11. If the user uses an OS/system stop path, WakeSaga records a Filler/Emergency
+    Stop instead of pretending the quest was cleared.
 
 ## Current Gap
 
@@ -25,6 +29,11 @@ The current prototype stores `alarmTime`, `alarmEnabled`, and `quest` in
 `AppState`, and launches Dawn Rail through a debug route. There is no native
 scheduler, permission flow, persistence layer, system alarm handoff, Android
 receiver, or real terminated-app wake path yet.
+
+Also important: `firstRunComplete` is not persisted today. If a real native
+alarm launches the app from a cold/terminated state right now, WakeSaga can fall
+back into onboarding/paywall instead of Dawn Rail. Persistence and launch
+routing are therefore step zero.
 
 ## iOS Plan
 
@@ -54,6 +63,8 @@ Implementation:
 7. Subscribe to `AlarmManager.shared.alarmUpdates` on app launch so WakeSaga can
    reconcile alarms changed while the app was not running.
 8. Use deep-link or method-channel handoff to route to `DawnTakeover(alarmId)`.
+9. Guard all AlarmKit code with `#available(iOS 26, *)` and weak linking unless
+   the project raises its iOS baseline to 26+.
 
 Important constraint:
 
@@ -62,6 +73,11 @@ silences the alarm" rule is strongest inside WakeSaga after the user opens the
 Dawn Rail. If iOS exposes a system stop control, WakeSaga should treat that as
 an emergency/filler outcome, not a successful Wake Quest clear. Do not claim
 that iOS has no escape hatch unless device testing proves it.
+
+The robust accounting path should not depend only on `StopIntent` executing
+while the app is terminated. Persist an expected-fire record and reconcile on
+next launch using AlarmKit updates plus WakeSaga's own clear/filler log. If an
+alarm fired and no Wake Quest clear was recorded, log Filler/Knockdown.
 
 Fallback path for iOS < 26:
 
@@ -86,15 +102,21 @@ Implementation:
    - `AlarmReceiver.kt`
    - alarm launch Activity or full-screen Flutter route.
 2. Declare platform permissions:
-   - `SCHEDULE_EXACT_ALARM` or `USE_EXACT_ALARM` after Play policy review,
+   - exact-alarm permission split after Play policy review:
+     `SCHEDULE_EXACT_ALARM` for API 31-32 and `USE_EXACT_ALARM` for API 33+
+     when accepted for the alarm-clock use case,
    - `POST_NOTIFICATIONS` for Android 13+,
-   - full-screen intent support if needed for the alarm takeover.
+   - `USE_FULL_SCREEN_INTENT` for alarm takeover behavior,
+   - `WAKE_LOCK`,
+   - foreground service permission/type for siren playback,
+   - `RECEIVE_BOOT_COMPLETED` for rescheduling after reboot.
 3. Schedule alarms with `AlarmManager.setAlarmClock(...)`.
 4. On fire, start WakeSaga with an alarm id and route to Dawn Rail.
 5. Use a foreground service or alarm Activity to play the siren/jolt while the
    user is in Wake Quest.
 6. On quest completion, stop the foreground alarm service and record the clear.
 7. On system dismiss/emergency path, record a Filler/Emergency Stop.
+8. On boot, read persisted `AlarmPlan` records and reschedule future alarms.
 
 ## Shared Flutter Contract
 
@@ -102,13 +124,23 @@ Create `lib/alarm/alarm_engine.dart`:
 
 ```dart
 abstract interface class AlarmEngine {
-  Future<AlarmPermissionState> requestPermission();
+  Future<AlarmCapabilityState> requestPermission();
   Future<ScheduledAlarm> schedule(AlarmPlan plan);
   Future<void> cancel(String alarmId);
   Future<List<ScheduledAlarm>> listScheduled();
+  Future<AlarmLaunch?> consumeLaunchAlarm();
   Stream<AlarmEvent> get events;
 }
 ```
+
+`consumeLaunchAlarm()` is required because an alarm can launch the app before
+Flutter has subscribed to the `events` stream. `WakeSagaApp` should check this
+before building the normal shell, then route through a root `navigatorKey` to
+the Dawn Rail.
+
+`AlarmCapabilityState` should be structured, not a single authorized/denied
+boolean. It needs to represent iOS AlarmKit auth and Android notification,
+exact-alarm, full-screen-intent, and foreground-service capability separately.
 
 Create `AlarmPlan` with:
 
@@ -127,20 +159,41 @@ Persist it locally before scheduling. If scheduling fails after the paywall or
 onboarding, the UI must show "alarm not armed" and retry instead of pretending
 the episode is locked.
 
+Also persist expected-fire records:
+
+- `alarmId`
+- scheduled fire timestamp
+- actual launch timestamp, if observed
+- OS stop/emergency stop, if observed
+- Wake Quest clear timestamp, if completed
+- final outcome: clear, filler, knockdown, emergency stop, unknown
+
+These records let WakeSaga recover truthfully after terminated launches, app
+crashes, OS-level stops, and Android reboots.
+
 ## Build Order
 
-1. Add persistent `AlarmPlan` model and `AlarmEngine` interface.
-2. Wire Today/onboarding arm actions to the interface using a fake engine in
-   tests and previews.
-3. Implement iOS AlarmKit bridge for iOS 26+.
-4. Add AlarmKit authorization primer and native permission call.
-5. Route AlarmKit launch/custom action into Dawn Rail.
-6. Add Android `setAlarmClock` implementation.
+1. Add persistence for `AppState`, `AlarmPlan`, first-run completion, paywall
+   unlock state, and expected-fire records.
+2. Add `AlarmEngine` interface, `FakeAlarmEngine`, `consumeLaunchAlarm()`,
+   root `navigatorKey`, and Dawn Rail launch routing.
+3. Wire onboarding and Today arm/edit/cancel actions to the fake engine first,
+   including scheduling-failure UI.
+4. Spike AlarmKit on a real iOS 26 device before freezing the final Dart
+   contract: authorization, locked/terminated firing, secondary action, stop
+   semantics, `alarmUpdates`, and custom sound constraints.
+5. Implement the iOS AlarmKit bridge, App Intents, authorization primer, launch
+   routing, and OS-alarm-to-in-app-siren handoff.
+6. Implement Android `setAlarmClock`, receiver, boot reschedule, exact-alarm
+   permissions, full-screen intent, foreground siren service, and route handoff.
 7. Add in-app jolt/siren playback and stop control tied to Wake Quest clear.
-8. Add reconciliation tests: scheduled, cancelled, fired, quest cleared,
-   emergency stopped, missed.
-9. Device-test locked phone, terminated app, silent mode, focus mode, repeat
-   alarm, and timezone/daylight-saving changes.
+8. Add reconciliation tests: scheduled, cancelled, fired, OS stopped, quest
+   cleared, emergency stopped, missed, reboot-rescheduled.
+9. Run a feature-honesty pass: onboarding copy, real permissions, seed-data
+   removal/gating, hard paywall purchase state, and "armed" copy tied to actual
+   scheduling success.
+10. Device-test locked phone, terminated app, silent mode, Focus mode, Android
+    reboot, repeat alarm, timezone changes, and daylight-saving changes.
 
 ## Audio Reality
 
@@ -148,6 +201,32 @@ The reliable first wake signal should be the OS alarm. The personalized
 Gemini/Flash TTS jolt should be pre-generated before bed and played immediately
 inside WakeSaga once Dawn Rail opens. Do not promise custom AI audio as the
 system-level iOS alarm sound until AlarmKit device testing proves that path.
+
+There is no audio dependency in the app today. The implementation needs an
+audio package plus native audio-session configuration:
+
+- iOS: `AVAudioSession` playback category/behavior appropriate for alarm audio.
+- Android: foreground service audio focus and `USAGE_ALARM` attributes.
+
+## Feature Honesty Fixes Before External Builds
+
+- Replace copy like "The alarm turns off only after Wake Quest" with the more
+  truthful model: Wake Quest is the verified clear; system stop becomes Filler
+  or Emergency Stop.
+- Do not show `EPISODE 1 IS ARMED` unless native scheduling succeeded.
+- Wire the permission screen to the real `AlarmCapabilityState` or soften copy
+  until the native permission flow exists.
+- Remove or gate seeded demo history for real users.
+- Wire purchases/restore before treating the hard paywall as production.
+
+## Claude Code Second-Opinion Notes
+
+Claude Code independently reviewed this plan on 2026-06-12. It agreed with the
+choice of iOS AlarmKit and Android `setAlarmClock`, but flagged the blockers now
+folded into this document: persistence before native scheduling, cold-start
+launch draining before shell selection, explicit OS-alarm-to-in-app-siren
+handoff, Android reboot/full-screen/foreground-service permissions, iOS 26
+availability guards, and feature-honesty copy around system stop paths.
 
 ## Sources
 
