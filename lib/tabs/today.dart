@@ -668,57 +668,18 @@ class _TodayTabState extends State<TodayTab>
             state: state,
             title: "WHEN TOMORROW'S ALARM RINGS",
           ),
-          const SizedBox(height: 20),
-          // LOCK IN steps down from hero circle to a breathing slab: still
-          // the screen's one crimson element, but the alarm loop above —
-          // Next Alarm card + loop rail — owns the day band now.
-          ScaleTransition(
-            scale: Tween(begin: 1.0, end: 1.02).animate(
-              CurvedAnimation(parent: _breathe, curve: Curves.easeInOut),
-            ),
-            child: GestureDetector(
-              key: const Key('lockInButton'),
-              onTap: _openLockIn,
-              child: Container(
-                height: 86,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: InkSignal.crimson,
-                  borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x4DFF2E4C),
-                      blurRadius: 28,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'LOCK IN',
-                      style: InkSignal.ui(
-                        22,
-                        color: Colors.white,
-                        weight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '20s of hype before gym · study · work',
-                      style: InkSignal.ui(
-                        13,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        weight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          const SizedBox(height: 26),
+          Text(
+            'DAYTIME BOOST',
+            style: InkSignal.ui(
+              12,
+              weight: FontWeight.w900,
+              letterSpacing: 2,
+              color: InkSignal.paper.withValues(alpha: 0.38),
             ),
           ),
+          const SizedBox(height: 8),
+          _LockInCard(breathe: _breathe, onTap: _openLockIn),
           const SizedBox(height: 18),
           if (card != null)
             Row(
@@ -1085,6 +1046,91 @@ class _Stamp extends StatelessWidget {
           weight: FontWeight.w900,
           letterSpacing: 1,
           color: active ? color : InkSignal.paper.withValues(alpha: 0.35),
+        ),
+      ),
+    );
+  }
+}
+
+class _LockInCard extends StatelessWidget {
+  const _LockInCard({required this.breathe, required this.onTap});
+
+  final Animation<double> breathe;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: Tween(
+        begin: 1.0,
+        end: 1.01,
+      ).animate(CurvedAnimation(parent: breathe, curve: Curves.easeInOut)),
+      child: GestureDetector(
+        key: const Key('lockInButton'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: InkSignal.panel(
+            color: InkSignal.surface,
+            borderColor: InkSignal.inkBorder,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: InkSignal.crimson,
+                  borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x33FF2E4C),
+                      blurRadius: 20,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.bolt, color: Colors.white, size: 21),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'LOCK IN CLIP',
+                      style: InkSignal.ui(
+                        15,
+                        weight: FontWeight.w900,
+                        letterSpacing: 0.9,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '20s before gym, study, or work',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: InkSignal.ui(
+                        13,
+                        color: InkSignal.paper.withValues(alpha: 0.56),
+                        weight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text('OPEN', style: InkSignal.mono(11, color: InkSignal.crimson)),
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: InkSignal.crimson,
+              ),
+            ],
+          ),
         ),
       ),
     );
