@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../alarm/alarm_models.dart';
+
 /// Outcome of a single day (one episode). Episodes are additive — the count
 /// never decrements, knockdowns and fillers are canon chapters, not resets.
 enum DayOutcome { cleared, filler, knockdown }
@@ -23,6 +25,27 @@ class DayRecord {
 
   /// Truth-based foil name (e.g. "FIRST LIGHT") if earned, else null.
   final String? foil;
+
+  Map<String, Object?> toJson() => {
+    'episode': episode,
+    'title': title,
+    'outcome': outcome.name,
+    'wakeTime': wakeTime,
+    'foil': foil,
+  };
+
+  factory DayRecord.fromJson(Map<String, Object?> json) {
+    return DayRecord(
+      episode: (json['episode'] as num?)?.toInt() ?? 1,
+      title: json['title'] as String? ?? 'THE ONE WHO STOOD UP',
+      outcome: DayOutcome.values.firstWhere(
+        (value) => value.name == json['outcome'],
+        orElse: () => DayOutcome.cleared,
+      ),
+      wakeTime: json['wakeTime'] as String? ?? '—',
+      foil: json['foil'] as String?,
+    );
+  }
 }
 
 /// Derives a shonen episode title from the user's mission text.
@@ -80,10 +103,12 @@ String formatTimeOfDay(TimeOfDay t) {
 class AppState extends ChangeNotifier {
   // ---- First run ----------------------------------------------------------
   bool firstRunComplete = false;
+  bool protagonistPassUnlocked = false;
 
   void completeFirstRun(TimeOfDay time) {
     alarmTime = time;
     alarmEnabled = true;
+    _stageActiveAlarmPlan();
     firstRunComplete = true;
     notifyListeners();
   }
@@ -123,6 +148,8 @@ class AppState extends ChangeNotifier {
     repeatRhythm = repeatChoice;
     wakeJolt = joltChoice;
     escapeRule = escapeRuleChoice;
+    protagonistPassUnlocked = true;
+    _stageActiveAlarmPlan();
     firstRunComplete = true;
     notifyListeners();
   }
@@ -167,13 +194,90 @@ class AppState extends ChangeNotifier {
   TimeOfDay alarmTime = const TimeOfDay(hour: 6, minute: 30);
   bool alarmEnabled = true;
   String quest = 'Get Up'; // 'Get Up' | 'Sky Photo' | 'Shake'.
+  AlarmPlan? activeAlarmPlan;
+  ScheduledAlarm? scheduledAlarm;
+  String? alarmScheduleError;
+  final List<ExpectedFireRecord> expectedFires = [];
+  AlarmLaunch? pendingAlarmLaunch;
 
   String get alarmLabel => formatTimeOfDay(alarmTime);
+
+  bool get alarmScheduleConfirmed =>
+      scheduledAlarm != null && scheduledAlarm!.plan.id == activeAlarmPlan?.id;
+
+  String get alarmScheduleMode => scheduledAlarm?.engineMode ?? 'not scheduled';
 
   void setAlarm({TimeOfDay? time, bool? enabled, String? questType}) {
     alarmTime = time ?? alarmTime;
     alarmEnabled = enabled ?? alarmEnabled;
     quest = questType ?? quest;
+    if (alarmEnabled) {
+      _stageActiveAlarmPlan();
+    } else {
+      activeAlarmPlan = null;
+      scheduledAlarm = null;
+      alarmScheduleError = null;
+    }
+    notifyListeners();
+  }
+
+  AlarmPlan ensureActiveAlarmPlan() {
+    _stageActiveAlarmPlan();
+    notifyListeners();
+    return activeAlarmPlan!;
+  }
+
+  void confirmScheduledAlarm(ScheduledAlarm scheduled) {
+    scheduledAlarm = scheduled;
+    activeAlarmPlan = scheduled.plan;
+    alarmEnabled = true;
+    alarmScheduleError = null;
+    _upsertExpectedFire(
+      ExpectedFireRecord(
+        alarmId: scheduled.plan.id,
+        scheduledFor: scheduled.scheduledFor,
+      ),
+    );
+    notifyListeners();
+  }
+
+  void markAlarmScheduleFailed(String message) {
+    scheduledAlarm = null;
+    alarmScheduleError = message;
+    notifyListeners();
+  }
+
+  void registerAlarmLaunch(AlarmLaunch launch) {
+    pendingAlarmLaunch = launch;
+    final index = expectedFires.indexWhere(
+      (record) => record.alarmId == launch.alarmId,
+    );
+    if (index != -1) {
+      expectedFires[index] = expectedFires[index].copyWith(
+        actualLaunchAt: launch.launchedAt,
+        outcome: AlarmOutcome.unknown,
+      );
+    }
+    notifyListeners();
+  }
+
+  AlarmLaunch? consumePendingAlarmLaunch() {
+    final launch = pendingAlarmLaunch;
+    pendingAlarmLaunch = null;
+    if (launch != null) notifyListeners();
+    return launch;
+  }
+
+  void markSystemStopped(String alarmId) {
+    final index = expectedFires.indexWhere(
+      (record) => record.alarmId == alarmId,
+    );
+    if (index != -1) {
+      expectedFires[index] = expectedFires[index].copyWith(
+        osStoppedAt: clock(),
+        outcome: AlarmOutcome.emergencyStop,
+      );
+    }
     notifyListeners();
   }
 
@@ -299,6 +403,7 @@ class AppState extends ChangeNotifier {
   bool clearedToday = false;
 
   void logFiller() {
+    _markActiveAlarmOutcome(AlarmOutcome.filler);
     log.add(
       DayRecord(
         episode: nextEpisode,
@@ -310,6 +415,7 @@ class AppState extends ChangeNotifier {
   }
 
   void logKnockdown() {
+    _markActiveAlarmOutcome(AlarmOutcome.knockdown);
     log.add(
       DayRecord(
         episode: nextEpisode,
@@ -321,6 +427,7 @@ class AppState extends ChangeNotifier {
   }
 
   void mintEpisode({required String wakeTime, String? foil}) {
+    _markActiveAlarmOutcome(AlarmOutcome.clear);
     log.add(
       DayRecord(
         episode: nextEpisode,
@@ -332,6 +439,91 @@ class AppState extends ChangeNotifier {
     );
     clearedToday = true;
     notifyListeners();
+  }
+
+  Map<String, Object?> toJson() => {
+    'firstRunComplete': firstRunComplete,
+    'protagonistPassUnlocked': protagonistPassUnlocked,
+    'userName': userName,
+    'narrator': narrator,
+    'rivalIntensity': rivalIntensity,
+    'arc': arc,
+    'stake': stake,
+    'rival': rival,
+    'questPlace': questPlace,
+    'proof': proof,
+    'difficulty': difficulty,
+    'fallbackQuest': fallbackQuest,
+    'repeatRhythm': repeatRhythm,
+    'wakeJolt': wakeJolt,
+    'escapeRule': escapeRule,
+    'alarmHour': alarmTime.hour,
+    'alarmMinute': alarmTime.minute,
+    'alarmEnabled': alarmEnabled,
+    'quest': quest,
+    'missionText': missionText,
+    'clearedToday': clearedToday,
+    'log': log.map((record) => record.toJson()).toList(),
+    'activeAlarmPlan': activeAlarmPlan?.toJson(),
+    'scheduledAlarm': scheduledAlarm?.toJson(),
+    'alarmScheduleError': alarmScheduleError,
+    'expectedFires': expectedFires.map((record) => record.toJson()).toList(),
+  };
+
+  void restoreFromJson(Map<String, Object?> json) {
+    firstRunComplete = json['firstRunComplete'] as bool? ?? firstRunComplete;
+    protagonistPassUnlocked =
+        json['protagonistPassUnlocked'] as bool? ?? protagonistPassUnlocked;
+    userName = json['userName'] as String? ?? userName;
+    narrator = json['narrator'] as String? ?? narrator;
+    rivalIntensity = json['rivalIntensity'] as String? ?? rivalIntensity;
+    arc = json['arc'] as String? ?? arc;
+    stake = json['stake'] as String? ?? stake;
+    rival = json['rival'] as String? ?? rival;
+    questPlace = json['questPlace'] as String? ?? questPlace;
+    proof = json['proof'] as String? ?? proof;
+    difficulty = json['difficulty'] as String? ?? difficulty;
+    fallbackQuest = json['fallbackQuest'] as String? ?? fallbackQuest;
+    repeatRhythm = json['repeatRhythm'] as String? ?? repeatRhythm;
+    wakeJolt = json['wakeJolt'] as String? ?? wakeJolt;
+    escapeRule = json['escapeRule'] as String? ?? escapeRule;
+    alarmTime = TimeOfDay(
+      hour: (json['alarmHour'] as num?)?.toInt() ?? alarmTime.hour,
+      minute: (json['alarmMinute'] as num?)?.toInt() ?? alarmTime.minute,
+    );
+    alarmEnabled = json['alarmEnabled'] as bool? ?? alarmEnabled;
+    quest = json['quest'] as String? ?? quest;
+    missionText = json['missionText'] as String? ?? missionText;
+    clearedToday = json['clearedToday'] as bool? ?? clearedToday;
+
+    final restoredLog = (json['log'] as List?)
+        ?.whereType<Map>()
+        .map((item) => DayRecord.fromJson(Map<String, Object?>.from(item)))
+        .toList();
+    if (restoredLog != null && restoredLog.isNotEmpty) {
+      log
+        ..clear()
+        ..addAll(restoredLog);
+    }
+
+    final activePlanJson = json['activeAlarmPlan'];
+    activeAlarmPlan = activePlanJson is Map
+        ? AlarmPlan.fromJson(Map<String, Object?>.from(activePlanJson))
+        : null;
+    final scheduledJson = json['scheduledAlarm'];
+    scheduledAlarm = scheduledJson is Map
+        ? ScheduledAlarm.fromJson(Map<String, Object?>.from(scheduledJson))
+        : null;
+    alarmScheduleError = json['alarmScheduleError'] as String?;
+
+    expectedFires
+      ..clear()
+      ..addAll(
+        (json['expectedFires'] as List? ?? const []).whereType<Map>().map(
+          (item) =>
+              ExpectedFireRecord.fromJson(Map<String, Object?>.from(item)),
+        ),
+      );
   }
 
   // ---- Time-aware Today state machine -------------------------------------
@@ -356,6 +548,58 @@ class AppState extends ChangeNotifier {
     if (hour >= 5 && hour < 12) return TodayBand.morning;
     if (hour < 20) return TodayBand.day;
     return TodayBand.night;
+  }
+
+  void _stageActiveAlarmPlan() {
+    final existingId = activeAlarmPlan?.id;
+    activeAlarmPlan = AlarmPlan(
+      id: existingId ?? 'wake-${DateTime.now().microsecondsSinceEpoch}',
+      episode: nextEpisode,
+      hour: alarmTime.hour,
+      minute: alarmTime.minute,
+      repeatDays: _repeatDaysFor(repeatRhythm),
+      quest: quest,
+      mission: missionText,
+      narrator: narrator,
+      joltAssetPath: null,
+      fallbackQuest: fallbackQuest,
+      createdAt: activeAlarmPlan?.createdAt ?? clock(),
+    );
+    scheduledAlarm = null;
+    alarmScheduleError = null;
+  }
+
+  List<int> _repeatDaysFor(String rhythm) {
+    return switch (rhythm) {
+      'Every day' => const [1, 2, 3, 4, 5, 6, 7],
+      'Weekends' || 'Weekend' => const [6, 7],
+      'Tomorrow only' || 'One time' => const [],
+      _ => const [1, 2, 3, 4, 5],
+    };
+  }
+
+  void _upsertExpectedFire(ExpectedFireRecord record) {
+    final index = expectedFires.indexWhere(
+      (existing) => existing.alarmId == record.alarmId,
+    );
+    if (index == -1) {
+      expectedFires.add(record);
+    } else {
+      expectedFires[index] = record;
+    }
+  }
+
+  void _markActiveAlarmOutcome(AlarmOutcome outcome) {
+    final alarmId = activeAlarmPlan?.id ?? scheduledAlarm?.plan.id;
+    if (alarmId == null) return;
+    final index = expectedFires.indexWhere(
+      (record) => record.alarmId == alarmId,
+    );
+    if (index == -1) return;
+    expectedFires[index] = expectedFires[index].copyWith(
+      questClearedAt: outcome == AlarmOutcome.clear ? clock() : null,
+      outcome: outcome,
+    );
   }
 }
 

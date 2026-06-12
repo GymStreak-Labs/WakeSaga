@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../alarm/alarm_engine.dart';
 import '../dawn_rail/dawn_takeover.dart';
 import '../dawn_rail/episode_player.dart';
 import '../state/app_state.dart';
@@ -63,32 +66,59 @@ class _TodayTabState extends State<TodayTab>
     ).push(hardCut(const SmashCutFlash(child: DawnTakeover())));
   }
 
-  void _lockTomorrow(AppState state) {
+  Future<void> _lockTomorrow(AppState state) async {
     HapticFeedback.mediumImpact();
     state
       ..setMission(_missionField.text)
       ..setAlarm(enabled: true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        duration: const Duration(milliseconds: 900),
-        backgroundColor: InkSignal.surface,
-        content: Text(
-          'Episode ${state.nextEpisode} locked for ${state.alarmLabel}.',
-          style: InkSignal.ui(15, weight: FontWeight.w700),
-        ),
-      ),
-    );
+    await _scheduleAlarmPlan(state);
   }
 
-  void _armComeback(AppState state) {
+  Future<void> _armComeback(AppState state) async {
     HapticFeedback.heavyImpact();
     state.setAlarm(enabled: true, questType: 'Get Up');
+    await _scheduleAlarmPlan(state);
+  }
+
+  Future<void> _scheduleAlarmPlan(AppState state) async {
+    try {
+      final engine = AlarmScope.read(context);
+      final capability = await engine.requestPermission();
+      if (!capability.canSchedule) {
+        state.markAlarmScheduleFailed(
+          capability.message ?? 'Alarm permission is not ready yet.',
+        );
+        _showAlarmSnack('Alarm not armed. Permission is not ready.');
+        return;
+      }
+      final scheduled = await engine.schedule(state.ensureActiveAlarmPlan());
+      state.confirmScheduledAlarm(scheduled);
+      _showAlarmSnack(
+        'Episode ${state.nextEpisode} armed for ${state.alarmLabel}.',
+      );
+    } catch (error) {
+      state.markAlarmScheduleFailed('Could not arm alarm: $error');
+      _showAlarmSnack('Alarm not armed. Try again from the alarm sheet.');
+    }
+  }
+
+  Future<void> _cancelAlarmIfNeeded(AppState state) async {
+    final alarmId = state.activeAlarmPlan?.id ?? state.scheduledAlarm?.plan.id;
+    state.setAlarm(enabled: false);
+    if (alarmId != null) {
+      await AlarmScope.read(context).cancel(alarmId);
+    }
+    _showAlarmSnack('Alarm turned off.');
+  }
+
+  void _showAlarmSnack(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(milliseconds: 900),
         backgroundColor: InkSignal.surface,
         content: Text(
-          'Comeback quest armed for ${state.alarmLabel}.',
+          message,
           style: InkSignal.ui(15, weight: FontWeight.w700),
         ),
       ),
@@ -222,6 +252,11 @@ class _TodayTabState extends State<TodayTab>
                         questType: pickedQuest,
                       );
                       Navigator.of(sheetContext).pop();
+                      if (enabled) {
+                        unawaited(_scheduleAlarmPlan(state));
+                      } else {
+                        unawaited(_cancelAlarmIfNeeded(state));
+                      }
                     },
                   ),
                 ],
@@ -864,7 +899,7 @@ class _TodayTabState extends State<TodayTab>
           SlabButton(
             "LOCK TOMORROW'S COLD OPEN",
             key: const Key('lockTomorrow'),
-            onTap: () => _lockTomorrow(state),
+            onTap: () => unawaited(_lockTomorrow(state)),
           ),
           const SizedBox(height: 24),
         ],
@@ -933,7 +968,7 @@ class _TodayTabState extends State<TodayTab>
           SlabButton(
             'ARM COMEBACK QUEST',
             key: const Key('armComeback'),
-            onTap: () => _armComeback(state),
+            onTap: () => unawaited(_armComeback(state)),
           ),
         ],
       ),

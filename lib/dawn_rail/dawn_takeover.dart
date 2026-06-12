@@ -418,13 +418,11 @@ class _QuestStrip extends StatelessWidget {
       ),
     );
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        fact('QUEST', quest),
-        const SizedBox(width: 8),
-        fact('PROOF', proof),
-      ],
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: [fact('QUEST', quest), fact('PROOF', proof)],
     );
   }
 }

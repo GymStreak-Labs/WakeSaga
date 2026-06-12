@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'alarm/alarm_engine.dart';
+import 'alarm/alarm_models.dart';
 import 'dawn_rail/dawn_takeover.dart';
 import 'onboarding/first_run.dart';
 import 'state/app_state.dart';
+import 'state/app_state_store.dart';
 import 'tabs/cast.dart';
 import 'tabs/saga.dart';
 import 'tabs/today.dart';
@@ -13,7 +16,9 @@ const _previewMainApp = bool.fromEnvironment('WAKE_SAGA_PREVIEW_MAIN_APP');
 const _previewTab = String.fromEnvironment('WAKE_SAGA_PREVIEW_TAB');
 const _previewBand = String.fromEnvironment('WAKE_SAGA_PREVIEW_BAND');
 
-void main() {
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -23,18 +28,54 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const WakeSagaApp());
+  final store = await AppStateStore.create();
+  final alarmEngine = FakeAlarmEngine();
+  final initialState = _previewMainApp ? null : store.loadState();
+  final initialLaunch = await alarmEngine.consumeLaunchAlarm();
+  runApp(
+    WakeSagaApp(
+      initialState: initialState,
+      store: store,
+      alarmEngine: alarmEngine,
+      initialAlarmLaunch: initialLaunch,
+    ),
+  );
 }
 
 class WakeSagaApp extends StatefulWidget {
-  const WakeSagaApp({super.key});
+  const WakeSagaApp({
+    super.key,
+    this.initialState,
+    this.store,
+    this.alarmEngine,
+    this.initialAlarmLaunch,
+  });
+
+  final AppState? initialState;
+  final AppStateStore? store;
+  final AlarmEngine? alarmEngine;
+  final AlarmLaunch? initialAlarmLaunch;
 
   @override
   State<WakeSagaApp> createState() => _WakeSagaAppState();
 }
 
 class _WakeSagaAppState extends State<WakeSagaApp> {
-  late final AppState _state = _buildInitialState();
+  late final AppState _state;
+  late final AlarmEngine _alarmEngine;
+  AppStateStore? _store;
+
+  @override
+  void initState() {
+    super.initState();
+    _state = widget.initialState ?? _buildInitialState();
+    _alarmEngine = widget.alarmEngine ?? FakeAlarmEngine();
+    _store = widget.store;
+    if (widget.initialAlarmLaunch != null) {
+      _state.registerAlarmLaunch(widget.initialAlarmLaunch!);
+    }
+    _store?.bind(_state);
+  }
 
   AppState _buildInitialState() {
     final state = AppState();
@@ -58,19 +99,27 @@ class _WakeSagaAppState extends State<WakeSagaApp> {
 
   @override
   void dispose() {
+    _store?.dispose();
+    if (_alarmEngine case FakeAlarmEngine fake) {
+      fake.dispose();
+    }
     _state.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppScope(
-      state: _state,
-      child: MaterialApp(
-        title: 'WakeSaga',
-        debugShowCheckedModeBanner: false,
-        theme: InkSignal.theme(),
-        home: const WakeSagaShell(),
+    return AlarmScope(
+      engine: _alarmEngine,
+      child: AppScope(
+        state: _state,
+        child: MaterialApp(
+          navigatorKey: rootNavigatorKey,
+          title: 'WakeSaga',
+          debugShowCheckedModeBanner: false,
+          theme: InkSignal.theme(),
+          home: const WakeSagaShell(),
+        ),
       ),
     );
   }
@@ -82,7 +131,8 @@ class WakeSagaShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = AppScope.of(context);
-    if (!state.firstRunComplete) {
+    final launchPending = state.pendingAlarmLaunch != null;
+    if (!state.firstRunComplete && !launchPending) {
       return const FirstRunFlow();
     }
     return const MainAppShell();
@@ -116,6 +166,19 @@ class _MainAppShellState extends State<MainAppShell> {
         pageBuilder: (_, _, _) => const DawnTakeover(),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final launch = AppScope.of(
+        context,
+        listen: false,
+      ).consumePendingAlarmLaunch();
+      if (launch != null) _ringAlarmNow();
+    });
   }
 
   @override
@@ -163,10 +226,7 @@ class _MainAppShellState extends State<MainAppShell> {
 }
 
 class _ColdOpenTabBar extends StatelessWidget {
-  const _ColdOpenTabBar({
-    required this.selectedIndex,
-    required this.onChanged,
-  });
+  const _ColdOpenTabBar({required this.selectedIndex, required this.onChanged});
 
   final int selectedIndex;
   final ValueChanged<int> onChanged;

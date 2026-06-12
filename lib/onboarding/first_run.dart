@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
 
+import '../alarm/alarm_engine.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/screentone.dart';
@@ -584,7 +585,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     if (_isTransitioning || _isFinishing) return;
     if (_index == _steps.length - 1) {
       HapticFeedback.heavyImpact();
-      _finish();
+      unawaited(_finish());
       return;
     }
     if (_step.kind == _StepKind.rating) {
@@ -648,8 +649,11 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     setState(() => _answers[field] = value);
   }
 
-  void _finish() {
+  Future<void> _finish() async {
+    if (_isFinishing) return;
+    setState(() => _isFinishing = true);
     final state = AppScope.of(context, listen: false);
+    final alarmEngine = AlarmScope.read(context);
     state.completeFirstRunWithSetup(
       time: TimeOfDay(hour: _picked.hour, minute: _picked.minute),
       name: _nameController.text,
@@ -668,6 +672,27 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       joltChoice: _answers['jolt'] ?? 'Hero trailer',
       escapeRuleChoice: _answers['behavior'] ?? 'Filler costs a chapter',
     );
+    await _scheduleEpisodeOne(state, alarmEngine);
+  }
+
+  Future<void> _scheduleEpisodeOne(
+    AppState state,
+    AlarmEngine alarmEngine,
+  ) async {
+    try {
+      final capability = await alarmEngine.requestPermission();
+      if (!capability.canSchedule) {
+        state.markAlarmScheduleFailed(
+          capability.message ?? 'Alarm permission is not ready yet.',
+        );
+        return;
+      }
+      final plan = state.ensureActiveAlarmPlan();
+      final scheduled = await alarmEngine.schedule(plan);
+      state.confirmScheduledAlarm(scheduled);
+    } catch (error) {
+      state.markAlarmScheduleFailed('Could not arm alarm: $error');
+    }
   }
 
   Future<void> _requestRatingThenContinue() async {
