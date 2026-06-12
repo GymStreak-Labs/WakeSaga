@@ -373,6 +373,7 @@ class _TodayTabState extends State<TodayTab>
             children: [
               const SizedBox(height: 8),
               _anchorRow(state),
+              if (_alarmAnchorFailed(state)) _notArmedBanner(state),
               Expanded(
                 child: switch (band) {
                   TodayBand.morning => _morning(state),
@@ -424,6 +425,40 @@ class _TodayTabState extends State<TodayTab>
 
   // ---- Persistent anchor row ----------------------------------------------
 
+  /// True when the alarm is on but the system schedule did not stick.
+  static bool _alarmAnchorFailed(AppState state) =>
+      state.alarmEnabled && state.alarmScheduleError != null;
+
+  /// Visible, actionable failure state: tap retries scheduling directly.
+  Widget _notArmedBanner(AppState state) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: GestureDetector(
+        key: const Key('alarmNotArmedBanner'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => unawaited(_scheduleAlarmPlan(state)),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: InkSignal.knockdownInk, width: 2),
+            borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+          ),
+          child: Text(
+            'ALARM NOT ARMED - TAP TO FIX',
+            textAlign: TextAlign.center,
+            style: InkSignal.ui(
+              14,
+              color: InkSignal.knockdownInk,
+              weight: FontWeight.w900,
+              letterSpacing: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _anchorRow(AppState state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -457,7 +492,7 @@ class _TodayTabState extends State<TodayTab>
                 ),
               ),
             ),
-            // Anchor 1: alarm time + toggle. Tap -> Alarm Sheet.
+            // Anchor 1: alarm time + schedule truth. Tap -> Alarm Sheet.
             // Long-press -> debug "ring alarm now" (launches Dawn Rail).
             GestureDetector(
               key: const Key('alarmAnchor'),
@@ -469,7 +504,16 @@ class _TodayTabState extends State<TodayTab>
                   horizontal: 10,
                   vertical: 6,
                 ),
-                color: InkSignal.base,
+                decoration: BoxDecoration(
+                  color: InkSignal.base,
+                  border: Border.all(
+                    color: _alarmAnchorFailed(state)
+                        ? InkSignal.knockdownInk
+                        : InkSignal.inkBorder,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -492,11 +536,26 @@ class _TodayTabState extends State<TodayTab>
                     ),
                     const SizedBox(width: 7),
                     Icon(
-                      state.alarmEnabled ? Icons.alarm_on : Icons.alarm_off,
+                      _alarmAnchorFailed(state)
+                          ? Icons.error_outline
+                          : state.alarmEnabled
+                          ? Icons.alarm_on
+                          : Icons.alarm_off,
                       size: 20,
-                      color: state.alarmEnabled
+                      color: _alarmAnchorFailed(state)
+                          ? InkSignal.knockdownInk
+                          : state.alarmEnabled && state.alarmScheduleConfirmed
+                          ? InkSignal.verifyGreen
+                          : state.alarmEnabled
                           ? InkSignal.paper
                           : InkSignal.paper.withValues(alpha: 0.35),
+                    ),
+                    const SizedBox(width: 4),
+                    // Edit cue: the anchor is a tappable control, not a label.
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: InkSignal.paper.withValues(alpha: 0.45),
                     ),
                   ],
                 ),
@@ -681,58 +740,79 @@ class _TodayTabState extends State<TodayTab>
           const _LoopRail(activeIndex: 5),
           const SizedBox(height: 12),
           // Next-scene strip: the daily loop always points at tonight.
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: InkSignal.panel(),
-            child: Row(
-              children: [
-                if (card != null) ...[
-                  MiniCardThumb(record: card, width: 44, height: 58),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'NEXT EPISODE',
-                        style: InkSignal.mono(
-                          11,
-                          color: InkSignal.paper.withValues(alpha: 0.45),
+          // Tap opens the Alarm Sheet — the strip is also the fix path.
+          GestureDetector(
+            key: const Key('nextEpisodeStrip'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _openAlarmSheet,
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: InkSignal.panel(),
+              child: Row(
+                children: [
+                  if (card != null) ...[
+                    MiniCardThumb(record: card, width: 44, height: 58),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'NEXT EPISODE',
+                          style: InkSignal.mono(
+                            11,
+                            color: InkSignal.paper.withValues(alpha: 0.45),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'EP ${state.nextEpisode} airs ${state.alarmLabel}'
-                        '${state.alarmEnabled ? '' : ' — ALARM OFF'}',
-                        style: InkSignal.ui(
-                          17,
-                          weight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                          color: state.alarmEnabled
-                              ? InkSignal.paper
-                              : InkSignal.knockdownInk,
+                        const SizedBox(height: 4),
+                        Text(
+                          _nextEpisodeLine(state),
+                          style: InkSignal.ui(
+                            17,
+                            weight: FontWeight.w900,
+                            letterSpacing: 0.4,
+                            color:
+                                !state.alarmEnabled || _alarmAnchorFailed(state)
+                                ? InkSignal.knockdownInk
+                                : InkSignal.paper,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${state.questReceipt.toUpperCase()} · ${state.wakeJolt.toUpperCase()}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: InkSignal.mono(
-                          10,
-                          color: InkSignal.paper.withValues(alpha: 0.45),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${state.questReceipt.toUpperCase()} · ${state.wakeJolt.toUpperCase()}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: InkSignal.mono(
+                            10,
+                            color: InkSignal.paper.withValues(alpha: 0.45),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Truthful next-episode line: never claims an air time the system
+  /// schedule hasn't confirmed.
+  String _nextEpisodeLine(AppState state) {
+    if (!state.alarmEnabled) {
+      return 'EP ${state.nextEpisode} - ALARM OFF';
+    }
+    if (state.alarmScheduleError != null) {
+      return 'ALARM NOT ARMED - TAP TO FIX';
+    }
+    if (state.alarmScheduleConfirmed) {
+      return 'EP ${state.nextEpisode} airs ${state.alarmLabel} - ARMED';
+    }
+    return 'EP ${state.nextEpisode} set for ${state.alarmLabel} - ARMING...';
   }
 
   Widget _night(AppState state) {
@@ -953,7 +1033,9 @@ class _TodayTabState extends State<TodayTab>
               borderRadius: BorderRadius.circular(InkSignal.panelRadius),
             ),
             child: Text(
-              'COMEBACK QUEST ARMED — ${state.alarmLabel}',
+              state.alarmEnabled && state.alarmScheduleConfirmed
+                  ? 'COMEBACK QUEST ARMED — ${state.alarmLabel}'
+                  : 'COMEBACK QUEST READY — ${state.alarmLabel}',
               style: InkSignal.ui(
                 15,
                 color: InkSignal.knockdownInk,

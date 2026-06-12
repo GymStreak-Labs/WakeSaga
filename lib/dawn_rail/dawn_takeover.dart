@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -37,8 +38,20 @@ class _DawnTakeoverState extends State<DawnTakeover>
     duration: const Duration(milliseconds: 1600),
   )..repeat();
 
+  // Keeps the hero clock on the current minute while the alarm blares.
+  Timer? _clockTick;
+
+  @override
+  void initState() {
+    super.initState();
+    _clockTick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   @override
   void dispose() {
+    _clockTick?.cancel();
     _pulse.dispose();
     _siren.dispose();
     super.dispose();
@@ -80,7 +93,11 @@ class _DawnTakeoverState extends State<DawnTakeover>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _BlaringClock(
+                            nowLabel: formatTimeOfDay(
+                              TimeOfDay.fromDateTime(state.clock()),
+                            ),
                             alarmLabel: state.alarmLabel,
+                            quest: state.quest,
                             pulse: _pulse,
                             siren: _siren,
                           ),
@@ -265,16 +282,21 @@ class _AlarmHeader extends StatelessWidget {
   }
 }
 
-/// The hero: a shaking bell over a giant skewed wake time, with continuous
-/// outward shockwave rings. No panel, no border — the time IS the screen.
+/// The hero: a shaking bell over the giant CURRENT time, with continuous
+/// outward shockwave rings. The alarm time reads as secondary metadata so a
+/// half-asleep user never mistakes the set time for the actual time.
 class _BlaringClock extends StatelessWidget {
   const _BlaringClock({
+    required this.nowLabel,
     required this.alarmLabel,
+    required this.quest,
     required this.pulse,
     required this.siren,
   });
 
+  final String nowLabel;
   final String alarmLabel;
+  final String quest;
   final Animation<double> pulse;
   final Animation<double> siren;
 
@@ -316,7 +338,7 @@ class _BlaringClock extends StatelessWidget {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            alarmLabel.toUpperCase(),
+                            nowLabel.toUpperCase(),
                             maxLines: 1,
                             style: InkSignal.display(104).copyWith(
                               shadows: [
@@ -335,10 +357,18 @@ class _BlaringClock extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'WAKE QUEST LOCKED',
+                    'ALARM - ${alarmLabel.toUpperCase()}',
                     style: InkSignal.mono(
                       11,
                       color: InkSignal.paper.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'QUEST: ${quest.toUpperCase()} - TURNS THIS OFF',
+                    style: InkSignal.mono(
+                      11,
+                      color: InkSignal.paper.withValues(alpha: 0.72),
                     ),
                   ),
                 ],

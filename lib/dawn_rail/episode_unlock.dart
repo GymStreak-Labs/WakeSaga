@@ -181,10 +181,10 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
                       child: Column(
                         children: [
                           Text(
-                            'EP ${state.nextEpisode}',
+                            'EPISODE ${state.nextEpisode} STARTS NOW',
                             style: InkSignal.mono(
                               12,
-                              color: InkSignal.paper.withValues(alpha: 0.55),
+                              color: InkSignal.paper.withValues(alpha: 0.72),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -212,14 +212,38 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
                             ),
                           ),
                           const SizedBox(height: 12),
+                          // Transition cue: this screen is a beat, not the
+                          // end; the bar fills into the title card slam.
                           Opacity(
                             opacity: footer.clamp(0.0, 1.0),
-                            child: Text(
-                              'TITLE CARD INCOMING',
-                              style: InkSignal.mono(
-                                12,
-                                color: InkSignal.paper.withValues(alpha: 0.54),
-                              ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'TITLE CARD INCOMING',
+                                  style: InkSignal.mono(
+                                    12,
+                                    color: InkSignal.paper.withValues(
+                                      alpha: 0.54,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: 168,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(2),
+                                    child: LinearProgressIndicator(
+                                      value: _seq.value,
+                                      minHeight: 3,
+                                      backgroundColor: InkSignal.paper
+                                          .withValues(alpha: 0.14),
+                                      color: InkSignal.gold.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],

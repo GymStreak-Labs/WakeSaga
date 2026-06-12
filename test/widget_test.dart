@@ -52,6 +52,7 @@ void main() {
     expect(find.text('SAGA'), findsWidgets);
     expect(find.text('CAST'), findsWidgets);
     expect(find.byKey(const Key('alarmAnchor')), findsOneWidget);
+    expect(find.textContaining(' - ARMED'), findsOneWidget);
   });
 
   testWidgets('cold alarm launch bypasses onboarding into Dawn Rail', (

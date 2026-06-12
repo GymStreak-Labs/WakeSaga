@@ -451,7 +451,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.time,
       kicker: 'AIR TIME',
       title: 'What time does your story start?',
-      body: 'This arms Episode 1.',
+      body: 'Episode 1 arms at this time when you finish setup.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
@@ -1798,7 +1798,7 @@ class _RatingStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'EPISODE 1 IS ARMED EITHER WAY',
+                  'EPISODE 1 IS READY - IT ARMS WHEN YOU FINISH',
                   style: InkSignal.mono(
                     12,
                     color: InkSignal.paper.withValues(alpha: 0.58),
