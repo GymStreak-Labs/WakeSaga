@@ -49,7 +49,7 @@ Two modes for two brains:
    - **TODAY**: time-aware state machine (Morning / Day / Night / Post-Miss) with two persistent
      anchors that survive every state: alarm time + toggle (top-center) and LOCK IN.
    - **SAGA**: episode count, arc volume spines, card binder, knockdown chapters in red ink.
-   - **PROFILE**: protagonist identity, active narrator, voice style, rival intensity, morning
+   - **PROFILE**: protagonist identity, active narrator, pre-quest Wake Jolt Style, rival intensity, morning
      defaults, and account/subscription controls. Because onboarding is hard-paywalled, narrator
      selection belongs here as a simple selector rather than as a separate locked shop.
 

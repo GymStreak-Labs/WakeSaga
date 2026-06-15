@@ -150,8 +150,8 @@ class _AlarmStudioState extends State<AlarmStudio> {
                   ),
                   _section(
                     key: const Key('sectionAlarmBehavior'),
-                    title: 'ALARM BEHAVIOR',
-                    summary: '${state.wakeJolt} · filler visible',
+                    title: 'WAKE JOLT STYLE',
+                    summary: '${state.wakeJolt} before quest',
                     open: _behaviorOpen,
                     onToggle: () =>
                         setState(() => _behaviorOpen = !_behaviorOpen),
@@ -604,8 +604,10 @@ class _AlarmStudioState extends State<AlarmStudio> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _factRow('WAKE JOLT', state.wakeJolt),
-        _factRow('SIREN', 'In-app siren + jolt when the Dawn Rail opens'),
+        _factRow('NARRATOR', '${state.narrator} — who speaks'),
+        _factRow('PRE-QUEST JOLT', '${state.wakeJolt} while alarm rings'),
+        _factRow('POST-QUEST VOICE', 'Morning Episode after quest clear'),
+        _factRow('SIREN', 'In-app siren behind the jolt until clear'),
         _factRow('FILLER', 'Snooze 9 min — always visible while ringing'),
         _factRow('FILLER COST', state.escapeRule),
         _factRow('HAPTICS', 'Heavy impact while ringing'),

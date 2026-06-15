@@ -351,7 +351,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'VOICE',
       title: 'Who narrates Episode 1?',
       body:
-          'This becomes your default voice. You can change it from Profile later.',
+          'Narrator means the character voice: Mentor, Rival, Captain, or Quiet Senior.',
       choices: [
         _Choice('Mentor', note: 'Believes first'),
         _Choice('Rival', note: 'Sharp and competitive'),
@@ -472,13 +472,14 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.choice,
       field: 'jolt',
       kicker: 'WAKE JOLT',
-      title: 'What should the first audio hit feel like?',
-      body: 'Short, urgent, and generated before bed.',
+      title: 'What should the alarm say before the quest?',
+      body:
+          'This is the short pre-quest audio. The full Morning Episode plays after the Wake Quest clears.',
       choices: [
         _Choice('Calm command'),
-        _Choice('Rival callout'),
         _Choice('Hero trailer'),
-        _Choice('Recovery gentle'),
+        _Choice('Rival cut-in'),
+        _Choice('Recovery mode'),
       ],
     ),
     _OnboardingStep(

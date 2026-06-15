@@ -23,7 +23,7 @@ class ProfileTab extends StatelessWidget {
             const SkewedDisplay('PROFILE', size: 52, textAlign: TextAlign.left),
             const SizedBox(height: 8),
             Text(
-              'Your protagonist file, narrator, and morning defaults.',
+              'Your protagonist file, narrator, pre-quest jolt, and morning defaults.',
               style: InkSignal.ui(
                 16,
                 color: InkSignal.paper.withValues(alpha: 0.58),
@@ -314,7 +314,7 @@ class _NarratorSample extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Used for alarm jolt, Morning Episode, and Lock In.',
+                  'Who speaks. Jolt before quest. Full episode after.',
                   style: InkSignal.ui(
                     13,
                     color: InkSignal.paper.withValues(alpha: 0.58),
@@ -414,11 +414,11 @@ class _VoiceStylePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ProfileSection(
-      kicker: 'VOICE STYLE',
+      kicker: 'WAKE JOLT STYLE',
       title: state.wakeJolt,
       children: [
         Text(
-          'Controls the first 15 seconds: how the alarm speaks before the quest.',
+          'Short voice lines while the alarm rings. Clear the Wake Quest, then the full Morning Episode begins.',
           style: InkSignal.ui(
             15,
             color: InkSignal.paper.withValues(alpha: 0.6),

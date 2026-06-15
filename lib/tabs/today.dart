@@ -825,7 +825,7 @@ class _TodayTabState extends State<TodayTab>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${state.repeatRhythm} · ${state.wakeJolt} · ${state.escapeRule}',
+                  '${state.repeatRhythm} · Pre-quest jolt: ${state.wakeJolt} · ${state.escapeRule}',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: InkSignal.ui(
@@ -1190,7 +1190,7 @@ class _LoopRail extends StatelessWidget {
       _WakePathStep(
         number: '1',
         title: 'Alarm rings',
-        detail: '${state.alarmLabel} · ${state.wakeJolt}',
+        detail: '${state.alarmLabel} · ${state.wakeJolt} before quest',
       ),
       _WakePathStep(
         number: '2',
