@@ -29,8 +29,8 @@ episode" framing.
   ("Tomorrow's mission?"), then the TO BE CONTINUED stinger + generated Cliffhanger Teaser.
   Episode audio generates server-side overnight — voice, instrumental score,
   subtitles, and mix. Mornings need zero network.
-- **Alarm**: Dawn Rail takeover. 8s personalized Cold Open in the narrator's voice with the user's
-  real name/history, then tone escalates. One crimson BEGIN QUEST slab; visible labeled
+- **Alarm**: Dawn Rail takeover. Short personalized Wake Jolt in the narrator's voice with the
+  user's name and a forceful wake command only. No mission/story exposition yet. One crimson BEGIN QUEST slab; visible labeled
   "FILLER (snooze 9 min)"; week-1 sick-day escape.
 - **Quest (30–90s)**: one 64pt instruction, sensor IS the screen. Failure ladder: 2 fails →
   fallback quest, 3 fails → alarm ends, Filler logged. The alarm never traps.
@@ -72,7 +72,7 @@ Two modes for two brains:
 ## Signature moments
 
 1. Title Card Slam (daily screenshot moment, 3s 9:16 export)
-2. Cold Open With Receipts (alarm calls you out by name with yesterday's behavior)
+2. Cold Open Wake Jolt (alarm calls your name and commands you up)
 3. Cliffhanger Teaser + TO BE CONTINUED (go to sleep mid-story)
 4. Knockdown Chapter (failure becomes canon content, never a zero)
 5. First Light Foils (truth-based rarity — users race their own alarm)

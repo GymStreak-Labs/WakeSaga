@@ -20,7 +20,9 @@ legible to a half-asleep user.
 
 For each armed episode, generate and cache:
 
-- `wake_jolt_voice`: short pre-quest voice clip.
+- `wake_jolt_voice`: short pre-quest voice clip. This should be forceful and
+  physical: name, wake up, get up, move now. It should not explain the mission,
+  rival, episode, or deeper story.
 - `episode_script`: 60-120 second script with mission, rival, first move, and
   callback to recent history.
 - `episode_voice`: Gemini/Flash TTS render of the script.
@@ -75,3 +77,28 @@ If generation fails, WakeSaga should still arm the alarm with:
 - text subtitles;
 - bundled fallback score bed;
 - clear UI that the episode is in fallback mode.
+
+## Wake Jolt Prompt Rules
+
+The Wake Jolt is not the Morning Episode. It is the thing that gets a
+half-asleep person vertical.
+
+Prompt style:
+
+```text
+Say this like a forceful anime commander shouting someone awake. Urgent,
+direct, high energy, no cruelty. Do not explain the mission or story. No
+paragraphs. No music. No sound effects.
+
+Joe! WAKE UP! GET UP! TODAY IS YOUR DAY. SEIZE IT!
+```
+
+Rules:
+
+- Use the user's name.
+- Prefer shouty one-line commands.
+- Say "wake up", "get up", "feet on the floor", "move now".
+- Do not mention mission, rival, episode title, yesterday, productivity, or
+  emotional analysis.
+- Recovery mode can soften volume/tone, but still tells the user exactly what
+  to do physically.

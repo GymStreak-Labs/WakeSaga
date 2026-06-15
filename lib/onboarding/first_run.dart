@@ -101,7 +101,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     'difficulty': 'Normal',
     'fallbackQuest': 'Shake',
     'repeat': 'Weekdays',
-    'jolt': 'Hero trailer',
+    'jolt': 'Power shout',
     'behavior': 'Filler costs a chapter',
     'permission': 'I understand',
     'commitment': 'Sign Episode 1',
@@ -474,12 +474,12 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'WAKE JOLT',
       title: 'What should the alarm say before the quest?',
       body:
-          'This is the short pre-quest audio. The scored Morning Episode plays after the Wake Quest clears.',
+          'This is the short pre-quest audio: name, wake up, get up. The scored Morning Episode plays after the Wake Quest clears.',
       choices: [
-        _Choice('Calm command'),
-        _Choice('Hero trailer'),
-        _Choice('Rival cut-in'),
-        _Choice('Recovery mode'),
+        _Choice('Power shout'),
+        _Choice('Hard command'),
+        _Choice('Rival blast'),
+        _Choice('Recovery command'),
       ],
     ),
     _OnboardingStep(
@@ -672,7 +672,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       difficultyChoice: _answers['difficulty'] ?? 'Normal',
       fallbackQuestChoice: _answers['fallbackQuest'] ?? 'Shake',
       repeatChoice: _answers['repeat'] ?? 'Weekdays',
-      joltChoice: _answers['jolt'] ?? 'Hero trailer',
+      joltChoice: _answers['jolt'] ?? 'Power shout',
       escapeRuleChoice: _answers['behavior'] ?? 'Filler costs a chapter',
     );
     await _scheduleEpisodeOne(state, alarmEngine);

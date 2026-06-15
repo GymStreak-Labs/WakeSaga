@@ -6,7 +6,7 @@ An AI alarm clock that wakes users into their own training arc, then gives them 
 ## Core loop
 1. **Episode 001 Builder** — a Wayk-length onboarding sequence diagnoses the user's morning loop, teaches the WakeSaga system, configures a Wayk-inspired Wake Quest, previews the plan, and introduces monetization after value is visible.
 2. **Night setup** — user chooses tomorrow's mission: study, gym, deep work, comeback, monk mode, recovery.
-3. **Wake-up jolt** — short personalized alarm audio, generated before the alarm time.
+3. **Wake-up jolt** — short, forceful, personalized alarm command generated before the alarm time: name, wake up, get up, move now.
 4. **Wake Quest** — the alarm is cleared by a tiny physical proof mission: Object Hunt, Sky Photo, Make Bed, Pushups, Water Check, Desk Photo, Shoes On, or Spoken Vow.
 5. **Morning Episode** — after the Wake Quest is complete, a cinematic 60–120 second motivational speech sets the day's stage with a generated instrumental score underneath.
 6. **First action / receipt** — user starts the mission and saves a collectible Wake Receipt.
@@ -50,7 +50,7 @@ The current prototype implements this as a data-driven Episode Builder with 45 s
 ## Technical notes
 - Generate/cache the alarm audio before sleep, not at alarm fire time.
 - Generate/cache the Morning Episode package before sleep: script, Gemini/Flash TTS voice, Google Lyria instrumental bed, subtitle timing, and a ducked voice-first mix.
-- Keep alarm clip short and urgent; the full scored speech happens in-app after Wake Quest clears.
+- Keep alarm clip short, shouty, and physical. It should not explain the story; the full scored speech happens in-app after Wake Quest clears.
 - Keep generated music instrumental-only, non-copyrighted, and mixed below narration so speech intelligibility wins.
 - Use platform-native alarm/notification capabilities, with AlarmKit where suitable on iOS and stronger alarm behavior on Android.
 - Avoid anime IP: no copyrighted characters, clips, OSTs, or voice imitation.

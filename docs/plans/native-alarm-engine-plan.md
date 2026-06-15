@@ -225,6 +225,11 @@ Gemini/Flash TTS jolt should be pre-generated before bed and played immediately
 inside WakeSaga once Dawn Rail opens. Do not promise custom AI audio as the
 system-level iOS alarm sound until AlarmKit device testing proves that path.
 
+The Wake Jolt should be forceful and simple: name, wake up, get up, move now.
+Do not put mission exposition, rival callbacks, episode recap, or emotional
+analysis in the alarm voice. Those belong in the Morning Episode after Wake
+Quest clears.
+
 The scored Morning Episode should also be generated before bed, not live at
 6:30am. Treat it as an `EpisodeAudioPackage`:
 

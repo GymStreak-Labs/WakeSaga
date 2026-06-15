@@ -50,6 +50,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Dawn Rail | Prototype works | `DawnTakeover -> WakeQuest -> TitleCardSlam -> EpisodePlayer -> CardMint` is a working in-app route pipeline. |
 | Wake Quest verification | Simulated | Get Up and Shake are tap counters; Sky Photo is a fake viewfinder. No accelerometer, pedometer, camera, liveness, object/photo proof, or permissions yet. |
 | Failure ladder | Prototype works | Two failed verifies reveal a fallback; the third logs Filler and exits so the alarm does not trap the user. |
+| Wake Jolt | Prototype works | Alarm-screen copy now treats the jolt as a forceful physical command only: name, wake up, get up, move now. It does not explain mission/rival/story; those belong after Wake Quest clears. |
 | Morning Episode | Simulated | Script lines, score-ready UI, and timer-based playback exist. No Gemini/Flash TTS, Google Lyria bed generation, cached mix, subtitle/audio alignment, or background playback yet. |
 | Title Card Slam | Prototype works | Episode title derives locally from mission text. No generated title-card media/export yet. |
 | Wake Card | Prototype works | Card mints locally with title, mission, wake time, quest, and simple foil logic. It does not use a real quest photo or create a real share/export. |

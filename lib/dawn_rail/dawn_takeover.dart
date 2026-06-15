@@ -79,6 +79,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
     // renders — the ringing screen never says "Random", it names the quest.
     final quest = state.resolvedQuest;
     final mission = WakeMission.byName(quest);
+    final command = _wakeJoltCommand(state.userName, state.wakeJolt);
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -107,11 +108,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
                             siren: _siren,
                           ),
                           const SizedBox(height: 6),
-                          StrokedSubtitle(
-                            '"${state.userName}. Up. '
-                            '$quest turns this off."',
-                            size: 19,
-                          ),
+                          StrokedSubtitle('"$command"', size: 21),
                           const SizedBox(height: 16),
                           _QuestStrip(
                             quest: quest,
@@ -167,6 +164,16 @@ class _DawnTakeoverState extends State<DawnTakeover>
         ),
       ),
     );
+  }
+
+  String _wakeJoltCommand(String rawName, String style) {
+    final name = rawName.trim().isEmpty ? 'Rookie' : rawName.trim();
+    return switch (style) {
+      'Recovery command' => '$name. Wake up. Sit up. Feet on the floor.',
+      'Hard command' => '$name! WAKE UP! GET UP NOW!',
+      'Rival blast' => '$name! WAKE UP! MOVE! NO SNOOZE!',
+      _ => '$name! WAKE UP! GET UP! TODAY IS YOUR DAY. SEIZE IT!',
+    };
   }
 }
 

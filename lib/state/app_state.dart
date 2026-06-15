@@ -170,7 +170,7 @@ class AppState extends ChangeNotifier {
   String difficulty = 'Normal';
   String fallbackQuest = 'Shake';
   String repeatRhythm = 'Weekdays';
-  String wakeJolt = 'Hero trailer';
+  String wakeJolt = 'Power shout';
   String escapeRule = 'Filler costs a chapter';
 
   String get arcShort => arc.replaceAll(' Arc', '').toUpperCase();
