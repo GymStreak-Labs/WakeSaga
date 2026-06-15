@@ -6,9 +6,10 @@ Branch/context: `cold-open-rebuild`
 ## Bottom Line
 
 WakeSaga is now a coherent Flutter prototype of the Cold Open direction. The
-active build has the long first-run onboarding Joe asked for, a Today/Saga/Cast
+active build has the long first-run onboarding Joe asked for, a Today/Saga/Profile
 app shell, a simulated alarm-to-card Dawn Rail, a simulated Wake Quest, a
-simulated Morning Episode, a Wake Card mint, and a mock Protagonist Pass sheet.
+simulated Morning Episode, a Wake Card mint, and a hard onboarding Protagonist
+Pass paywall surface.
 
 It is not yet a production alarm app. The current app does not schedule native
 notifications, critical alerts, AlarmKit/Android alarms, or background audio.
@@ -30,7 +31,7 @@ flutter build ios --simulator --no-codesign
 Simulator proof recordings were captured for:
 
 - Full long onboarding through handoff into the app.
-- Main app + Dawn Rail loop: Today/Cast, alarm takeover, Wake Quest, episode,
+- Main app + Dawn Rail loop: Today/Profile, alarm takeover, Wake Quest, episode,
   and Wake Card.
 
 These checks prove the prototype renders and the in-app flow can be driven. They
@@ -54,7 +55,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Wake Card | Prototype works | Card mints locally with title, mission, wake time, quest, and simple foil logic. It does not use a real quest photo or create a real share/export. |
 | Today tab | Prototype works | State-aware Today has morning/day/night/post-miss modes, mission editing, lock-tomorrow CTA, comeback CTA, and loop rail. State is memory-only. |
 | Saga | Prototype works | Shows seeded demo history, volume shelf, timeline, binder, and rival log. It is not backed by persistent real user history yet. |
-| Cast | Prototype works | Narrator roster, samples, settings, and Protagonist Pass sheet exist. Samples are text-only and locked voices are not entitlement-gated. |
+| Profile | Prototype works | Protagonist identity, active narrator selector, voice style, rival intensity, morning defaults, and account/subscription rows exist. Narrator samples are text-only. |
 | Lock In | Simulated | Lock In exists as a fast in-app moment. No generated audio, timer, limits, or entitlement rules yet. |
 | Paywall/subscription | Mock only | Protagonist Pass UI exists. There is no RevenueCat, StoreKit, restore handling, purchase flow, or entitlement check. |
 | Persistence | Missing | `AppState` is an in-memory `ChangeNotifier`; first-run completion, settings, alarm time, mission, cards, and logs reset on restart. |
@@ -97,7 +98,7 @@ without adding UI clutter:
 2. Title Card Slam crimson/ink speed slash.
 3. Small Wake Quest mission cutouts for Object Hunt, Water Check, Sky Photo,
    Desk Ready, and Get Up.
-4. Flat-cel narrator busts for Cast.
+4. Flat-cel narrator busts for the Profile narrator selector.
 5. Wake Card foil stamps such as First Light, Comeback, No Snooze, and Storm
    Riser.
 6. Post-miss comeback red-ink stamp.
@@ -125,7 +126,7 @@ Detailed prompt seeds and implementation order live in
 - The app now has a coherent Cold Open product loop rather than a dashboard of
   equal features.
 - The long onboarding is back and aligned with the app's identity.
-- Today/Saga/Cast is the right app-section structure for an awake user.
+- Today/Saga/Profile is the right app-section structure for an awake user.
 - Dawn Rail is the right morning structure for a half-asleep user: no nav, one
   primary action, visible fallback.
 - Failure-as-canon and additive episode count are implemented at the model

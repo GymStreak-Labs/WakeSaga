@@ -194,6 +194,11 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setWakeJolt(String value) {
+    wakeJolt = value;
+    notifyListeners();
+  }
+
   // ---- Alarm + quest ------------------------------------------------------
   TimeOfDay alarmTime = const TimeOfDay(hour: 6, minute: 30);
   bool alarmEnabled = true;

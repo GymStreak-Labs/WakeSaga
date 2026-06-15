@@ -8,7 +8,7 @@ import 'dawn_rail/dawn_takeover.dart';
 import 'onboarding/first_run.dart';
 import 'state/app_state.dart';
 import 'state/app_state_store.dart';
-import 'tabs/cast.dart';
+import 'tabs/profile.dart';
 import 'tabs/saga.dart';
 import 'tabs/today.dart';
 import 'theme/ink_signal.dart';
@@ -152,7 +152,7 @@ class MainAppShell extends StatefulWidget {
 class _MainAppShellState extends State<MainAppShell> {
   late int _tabIndex = switch (_previewTab) {
     'saga' => 1,
-    'cast' => 2,
+    'profile' || 'cast' => 2,
     _ => 0,
   };
 
@@ -189,7 +189,7 @@ class _MainAppShellState extends State<MainAppShell> {
     final pages = [
       TodayTab(onOpenSaga: _openSaga),
       SagaTab(onOpenToday: () => setState(() => _tabIndex = 0)),
-      const CastTab(),
+      const ProfileTab(),
     ];
 
     return Scaffold(
@@ -237,7 +237,7 @@ class _ColdOpenTabBar extends StatelessWidget {
   static const _items = [
     _TabSpec('TODAY', Icons.flash_on_rounded),
     _TabSpec('SAGA', Icons.auto_stories_rounded),
-    _TabSpec('CAST', Icons.record_voice_over_rounded),
+    _TabSpec('PROFILE', Icons.person_rounded),
   ];
 
   @override
@@ -299,30 +299,36 @@ class _TabButton extends StatelessWidget {
           color: selected ? InkSignal.paper : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              spec.icon,
-              size: 20,
-              color: selected
-                  ? InkSignal.base
-                  : InkSignal.paper.withValues(alpha: 0.48),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  spec.icon,
+                  size: 20,
+                  color: selected
+                      ? InkSignal.base
+                      : InkSignal.paper.withValues(alpha: 0.48),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  spec.label,
+                  style: InkSignal.ui(
+                    13,
+                    color: selected
+                        ? InkSignal.base
+                        : InkSignal.paper.withValues(alpha: 0.48),
+                    weight: FontWeight.w900,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 7),
-            Text(
-              spec.label,
-              style: InkSignal.ui(
-                13,
-                color: selected
-                    ? InkSignal.base
-                    : InkSignal.paper.withValues(alpha: 0.48),
-                weight: FontWeight.w900,
-                letterSpacing: 1,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -8,7 +8,7 @@ morning alarm into the cold open of a daily anime-style training arc.
 - Long Cold Open onboarding with morning diagnosis, education interstitials,
   saga personalization, Wake Quest setup, plan reveal, receipt preview, and mock
   monetization beats.
-- Today/Saga/Cast app shell for the awake user.
+- Today/Saga/Profile app shell for the awake user.
 - Simulated Dawn Rail: alarm takeover -> Wake Quest -> Title Card Slam ->
   Morning Episode -> Wake Card.
 - Simulated Lock In moments for short motivation.

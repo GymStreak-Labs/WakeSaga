@@ -50,7 +50,7 @@ void main() {
 
     expect(find.text('TODAY'), findsWidgets);
     expect(find.text('SAGA'), findsWidgets);
-    expect(find.text('CAST'), findsWidgets);
+    expect(find.text('PROFILE'), findsWidgets);
     expect(find.byKey(const Key('alarmAnchor')), findsOneWidget);
     expect(find.textContaining(' - ARMED'), findsOneWidget);
   });

@@ -26,11 +26,11 @@ one action, one state. Transparent art supports the scene.
    - Why: these make Wayk-inspired missions instantly legible when a user is
      half asleep.
 
-4. Narrator busts for Cast
+4. Narrator busts for Profile
    - Assets: flat-cel transparent busts for Mentor, Rival, Captain, Quiet
      Senior.
-   - Why: Cast currently uses letter placeholders. Character portraits would
-     make narrator selection feel like the app's identity, not settings.
+   - Why: Profile currently uses letter placeholders. Character portraits would
+     make narrator selection feel like the app's identity, not generic settings.
 
 5. Wake Card foil stamps
    - Assets: transparent rarity seals: FIRST LIGHT, COMEBACK, NO SNOOZE,
@@ -84,6 +84,6 @@ background, clean alpha edges.
 ## Implementation Order
 
 1. Replace/refine the first-run cold open protagonist.
-2. Add narrator busts to Cast.
+2. Add narrator busts to Profile.
 3. Add small Wake Quest mission cutouts.
 4. Add card/stamp rewards once the core flow records well.

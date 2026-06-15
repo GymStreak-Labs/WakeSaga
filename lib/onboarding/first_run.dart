@@ -348,9 +348,10 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     _OnboardingStep(
       kind: _StepKind.choice,
       field: 'narrator',
-      kicker: 'CAST',
+      kicker: 'VOICE',
       title: 'Who narrates Episode 1?',
-      body: 'You can unlock more voices later. Mentor is the free pilot voice.',
+      body:
+          'This becomes your default voice. You can change it from Profile later.',
       choices: [
         _Choice('Mentor', note: 'Believes first'),
         _Choice('Rival', note: 'Sharp and competitive'),

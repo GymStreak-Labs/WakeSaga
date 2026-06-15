@@ -20,7 +20,7 @@ docs/plans/     # product and implementation plans (cold-open-direction/ = desig
 lib/theme/      # INK-AND-SIGNAL tokens (InkSignal)
 lib/state/      # AppState — single ChangeNotifier exposed via AppScope
 lib/onboarding/ # First Run cold-open flow
-lib/tabs/       # Today / Saga / Cast (the only 3 tabs)
+lib/tabs/       # Today / Saga / Profile (the only 3 tabs)
 lib/dawn_rail/  # Alarm → Quest → Title Card → Episode → Card Mint pipeline
 lib/widgets/    # screentone painters, hard-cut routes, mini card thumb
 tmp/            # golden capture harnesses (not shipped)

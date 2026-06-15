@@ -49,7 +49,9 @@ Two modes for two brains:
    - **TODAY**: time-aware state machine (Morning / Day / Night / Post-Miss) with two persistent
      anchors that survive every state: alarm time + toggle (top-center) and LOCK IN.
    - **SAGA**: episode count, arc volume spines, card binder, knockdown chapters in red ink.
-   - **CAST**: narrator roster with live personalized 5s voice samples + Protagonist Pass sheet.
+   - **PROFILE**: protagonist identity, active narrator, voice style, rival intensity, morning
+     defaults, and account/subscription controls. Because onboarding is hard-paywalled, narrator
+     selection belongs here as a simple selector rather than as a separate locked shop.
 
 ## Design language: INK-AND-SIGNAL (dark-first)
 
@@ -95,6 +97,6 @@ Two modes for two brains:
 5. Today state machine + Alarm Sheet
 6. Saga shelf
 7. Lock In (smallest feature — do not let it grow)
-8. Cast + Protagonist Pass (RevenueCat; sell after Episode 3's magic)
+8. Profile + account/subscription controls (RevenueCat; preserve the hard onboarding paywall)
 9. Ambient surfaces (Live Activity, StandBy, widget)
 10. Haptic/sound score + knockdown economy tuning → TestFlight with 16–26 anime-native cohort
