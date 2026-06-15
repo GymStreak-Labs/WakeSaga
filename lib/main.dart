@@ -155,6 +155,7 @@ class _MainAppShellState extends State<MainAppShell> {
     'profile' || 'cast' => 2,
     _ => 0,
   };
+  bool _profileAssetsPrecached = false;
 
   void _openSaga() {
     setState(() => _tabIndex = 1);
@@ -181,6 +182,17 @@ class _MainAppShellState extends State<MainAppShell> {
         listen: false,
       ).consumePendingAlarmLaunch();
       if (launch != null) _ringAlarmNow();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_profileAssetsPrecached) return;
+    _profileAssetsPrecached = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      precacheProfileNarratorAssets(context);
     });
   }
 

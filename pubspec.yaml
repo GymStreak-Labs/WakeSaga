@@ -61,6 +61,7 @@ flutter:
 
   assets:
     - assets/brand/
+    - assets/narrators/
     - assets/onboarding/
 
 

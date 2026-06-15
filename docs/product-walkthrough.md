@@ -55,7 +55,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Wake Card | Prototype works | Card mints locally with title, mission, wake time, quest, and simple foil logic. It does not use a real quest photo or create a real share/export. |
 | Today tab | Prototype works | State-aware Today has morning/day/night/post-miss modes, mission editing, lock-tomorrow CTA, comeback CTA, and loop rail. State is memory-only. |
 | Saga | Prototype works | Shows seeded demo history, volume shelf, timeline, binder, and rival log. It is not backed by persistent real user history yet. |
-| Profile | Prototype works | Protagonist identity, active narrator selector, pre-quest Wake Jolt Style, rival intensity, morning defaults, and account/subscription rows exist. Narrator samples are text-only. |
+| Profile | Prototype works | Protagonist identity, GPT-image-1.5 transparent narrator busts, active narrator selector, pre-quest Wake Jolt Style, rival intensity, morning defaults, and account/subscription rows exist. Audio samples are still text-only. |
 | Lock In | Simulated | Lock In exists as a fast in-app moment. No generated audio, timer, limits, or entitlement rules yet. |
 | Paywall/subscription | Mock only | Protagonist Pass UI exists. There is no RevenueCat, StoreKit, restore handling, purchase flow, or entitlement check. |
 | Persistence | Missing | `AppState` is an in-memory `ChangeNotifier`; first-run completion, settings, alarm time, mission, cards, and logs reset on restart. |

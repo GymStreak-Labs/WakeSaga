@@ -5,6 +5,13 @@ import '../alarm/alarm_studio.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 
+Future<void> precacheProfileNarratorAssets(BuildContext context) {
+  return Future.wait([
+    for (final narrator in _narrators)
+      precacheImage(AssetImage(narrator.asset), context),
+  ]);
+}
+
 /// PROFILE — identity, voice, and morning defaults. Since onboarding is now
 /// hard-paywalled, this is not a locked narrator shop; it is the user's command
 /// file for how WakeSaga should speak and wake them.
@@ -279,21 +286,10 @@ class _NarratorSample extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 48,
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: InkSignal.base.withValues(alpha: 0.42),
-              borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-              border: Border.all(
-                color: InkSignal.paper.withValues(alpha: 0.22),
-                width: 2,
-              ),
-            ),
-            child: Text(
-              narrator.name.substring(0, 1).toUpperCase(),
-              style: InkSignal.display(30),
-            ),
+            width: 98,
+            height: 108,
+            alignment: Alignment.bottomCenter,
+            child: _NarratorPortrait(narrator: narrator, size: 108),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -367,8 +363,8 @@ class _NarratorChoice extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 32,
+              height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: selected
@@ -376,13 +372,11 @@ class _NarratorChoice extends StatelessWidget {
                     : narrator.color.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(2),
               ),
-              child: Text(
-                narrator.name.substring(0, 1).toUpperCase(),
-                style: InkSignal.ui(
-                  15,
-                  color: selected ? InkSignal.paper : InkSignal.paper,
-                  weight: FontWeight.w900,
-                ),
+              clipBehavior: Clip.antiAlias,
+              child: _NarratorPortrait(
+                narrator: narrator,
+                size: 40,
+                selected: selected,
               ),
             ),
             const SizedBox(width: 9),
@@ -727,19 +721,99 @@ class _SettingRow extends StatelessWidget {
   }
 }
 
+class _NarratorPortrait extends StatelessWidget {
+  const _NarratorPortrait({
+    required this.narrator,
+    required this.size,
+    this.selected = false,
+  });
+
+  final _Narrator narrator;
+  final double size;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '${narrator.name} narrator portrait',
+      image: true,
+      child: Image.asset(
+        narrator.asset,
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        opacity: AlwaysStoppedAnimation(selected ? 1 : 0.96),
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) return child;
+          return _PortraitFallback(narrator: narrator, size: size);
+        },
+        errorBuilder: (_, _, _) =>
+            _PortraitFallback(narrator: narrator, size: size),
+      ),
+    );
+  }
+}
+
+class _PortraitFallback extends StatelessWidget {
+  const _PortraitFallback({required this.narrator, required this.size});
+
+  final _Narrator narrator;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: Text(
+          narrator.name.substring(0, 1).toUpperCase(),
+          style: InkSignal.ui(
+            size * 0.42,
+            color: InkSignal.paper,
+            weight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _Narrator {
-  const _Narrator(this.name, this.role, this.color);
+  const _Narrator(this.name, this.role, this.color, this.asset);
 
   final String name;
   final String role;
   final Color color;
+  final String asset;
 }
 
 const _narrators = [
-  _Narrator('Mentor', 'Warm pressure', Color(0xFF2E4A66)),
-  _Narrator('Rival', 'Sharp receipt energy', Color(0xFF5A2333)),
-  _Narrator('Captain', 'Direct field command', Color(0xFF3C4D2A)),
-  _Narrator('Quiet Senior', 'Minimal, heavy lines', Color(0xFF4A3A5E)),
+  _Narrator(
+    'Mentor',
+    'Warm pressure',
+    Color(0xFF2E4A66),
+    'assets/narrators/mentor.png',
+  ),
+  _Narrator(
+    'Rival',
+    'Sharp receipt energy',
+    Color(0xFF5A2333),
+    'assets/narrators/rival.png',
+  ),
+  _Narrator(
+    'Captain',
+    'Direct field command',
+    Color(0xFF3C4D2A),
+    'assets/narrators/captain.png',
+  ),
+  _Narrator(
+    'Quiet Senior',
+    'Minimal, heavy lines',
+    Color(0xFF4A3A5E),
+    'assets/narrators/quiet_senior.png',
+  ),
 ];
 
 const _voiceStyles = [
