@@ -79,7 +79,7 @@ class _WakeSagaAppState extends State<WakeSagaApp> {
   }
 
   AppState _buildInitialState() {
-    final state = AppState();
+    final state = AppState(seedDemoHistory: _previewMainApp);
     if (_previewMainApp) {
       state.firstRunComplete = true;
       state.alarmEnabled = true;
@@ -188,7 +188,7 @@ class _MainAppShellState extends State<MainAppShell> {
   Widget build(BuildContext context) {
     final pages = [
       TodayTab(onOpenSaga: _openSaga),
-      const SagaTab(),
+      SagaTab(onOpenToday: () => setState(() => _tabIndex = 0)),
       const CastTab(),
     ];
 

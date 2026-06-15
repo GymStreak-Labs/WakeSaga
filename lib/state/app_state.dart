@@ -102,6 +102,9 @@ String formatTimeOfDay(TimeOfDay t) {
 
 /// Whole-app prototype state. Single ChangeNotifier, exposed via [AppScope].
 class AppState extends ChangeNotifier {
+  AppState({bool seedDemoHistory = false})
+    : log = seedDemoHistory ? List<DayRecord>.of(_demoLog) : <DayRecord>[];
+
   // ---- First run ----------------------------------------------------------
   bool firstRunComplete = false;
   bool protagonistPassUnlocked = false;
@@ -337,8 +340,11 @@ class AppState extends ChangeNotifier {
   }
 
   // ---- Behavior log / saga ------------------------------------------------
-  /// Seeded demo history: Arc I (14 episodes) + start of Arc II.
-  final List<DayRecord> log = [
+  /// Real users start with an empty Saga. Demo/capture harnesses may opt into
+  /// this fixture explicitly so the proof/history surface still has rich data.
+  final List<DayRecord> log;
+
+  static final List<DayRecord> _demoLog = [
     const DayRecord(
       episode: 1,
       title: 'THE ONE WHO STOOD UP',

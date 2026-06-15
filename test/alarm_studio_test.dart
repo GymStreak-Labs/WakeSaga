@@ -82,7 +82,7 @@ void main() {
 
     expect(state.alarmEnabled, isFalse);
     expect(state.alarmScheduleConfirmed, isFalse);
-    expect(find.textContaining('EP 17 - ALARM OFF'), findsOneWidget);
+    expect(find.textContaining('EP 1 - ALARM OFF'), findsOneWidget);
   });
 
   testWidgets('Random Quest is selectable and Today explains the rotation', (
