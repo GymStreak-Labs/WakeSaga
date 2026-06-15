@@ -203,23 +203,27 @@ class SlabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: height,
-        width: double.infinity,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-        ),
-        child: Text(
-          label.toUpperCase(),
-          style: InkSignal.ui(
-            19,
-            color: textColor,
-            weight: FontWeight.w700,
-            letterSpacing: 1.2,
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: height,
+          width: double.infinity,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+          ),
+          child: Text(
+            label.toUpperCase(),
+            style: InkSignal.ui(
+              19,
+              color: textColor,
+              weight: FontWeight.w700,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
       ),

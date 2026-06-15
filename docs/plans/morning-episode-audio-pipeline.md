@@ -78,6 +78,25 @@ If generation fails, WakeSaga should still arm the alarm with:
 - bundled fallback score bed;
 - clear UI that the episode is in fallback mode.
 
+## Prototype Wiring
+
+The current Flutter prototype uses bundled assets in `assets/audio/`:
+
+- `alarm_pulse_loop.mp3`
+- `wake_jolt_forceful.mp3`
+- `quest_clear_sting.mp3`
+- `lyria_morning_episode_bed.mp3`
+- `morning_episode_scored.mp3`
+
+`WakeSagaAudio` owns the lifecycle:
+
+1. Dawn Takeover starts the alarm loop and forceful Wake Jolt.
+2. Wake Quest keeps the alarm alive until verify.
+3. Quest clear stops the alarm and plays the clear sting.
+4. Morning Episode plays the scored mix.
+
+This proves the product timing before the backend generation/cache path exists.
+
 ## Wake Jolt Prompt Rules
 
 The Wake Jolt is not the Morning Episode. It is the thing that gets a

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../audio/wake_saga_audio.dart';
 import '../alarm/wake_missions.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
@@ -45,6 +46,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
   @override
   void initState() {
     super.initState();
+    unawaited(WakeSagaAudio.instance.startAlarmJolt());
     _clockTick = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -53,6 +55,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
   @override
   void dispose() {
     _clockTick?.cancel();
+    unawaited(WakeSagaAudio.instance.stopAlarm());
     _pulse.dispose();
     _siren.dispose();
     super.dispose();
@@ -67,6 +70,7 @@ class _DawnTakeoverState extends State<DawnTakeover>
 
   void _takeFiller() {
     HapticFeedback.mediumImpact();
+    unawaited(WakeSagaAudio.instance.stopAlarm());
     final state = AppScope.of(context);
     state.logFiller();
     Navigator.of(context).popUntil((route) => route.isFirst);
@@ -500,55 +504,61 @@ class _SirenSlab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedBuilder(
-        animation: pulse,
-        builder: (context, _) {
-          final beat = Curves.easeInOut.transform(pulse.value);
-          return Container(
-            height: 96,
-            width: double.infinity,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: InkSignal.crimson,
-              borderRadius: BorderRadius.circular(InkSignal.panelRadius),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2 + beat * 0.4),
-                width: 2,
+    return Semantics(
+      button: true,
+      label: 'Turn off alarm. Enter Wake Quest: $quest.',
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedBuilder(
+          animation: pulse,
+          builder: (context, _) {
+            final beat = Curves.easeInOut.transform(pulse.value);
+            return Container(
+              height: 96,
+              width: double.infinity,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: InkSignal.crimson,
+                borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2 + beat * 0.4),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: InkSignal.crimson.withValues(
+                      alpha: 0.3 + beat * 0.3,
+                    ),
+                    blurRadius: 24 + beat * 20,
+                    spreadRadius: 1 + beat * 3,
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: InkSignal.crimson.withValues(alpha: 0.3 + beat * 0.3),
-                  blurRadius: 24 + beat * 20,
-                  spreadRadius: 1 + beat * 3,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'TURN OFF ALARM',
-                  style: InkSignal.ui(
-                    22,
-                    color: Colors.white,
-                    weight: FontWeight.w900,
-                    letterSpacing: 1.4,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'TURN OFF ALARM',
+                    style: InkSignal.ui(
+                      22,
+                      color: Colors.white,
+                      weight: FontWeight.w900,
+                      letterSpacing: 1.4,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'ENTER WAKE QUEST · ${quest.toUpperCase()}',
-                  style: InkSignal.mono(
-                    11,
-                    color: Colors.white.withValues(alpha: 0.85),
+                  const SizedBox(height: 4),
+                  Text(
+                    'ENTER WAKE QUEST · ${quest.toUpperCase()}',
+                    style: InkSignal.mono(
+                      11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

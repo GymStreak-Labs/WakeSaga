@@ -624,7 +624,10 @@ class AppState extends ChangeNotifier {
       quest: quest,
       mission: missionText,
       narrator: narrator,
-      joltAssetPath: null,
+      joltAssetPath: 'assets/audio/wake_jolt_forceful.mp3',
+      episodeVoiceAssetPath: null,
+      episodeMusicAssetPath: 'assets/audio/lyria_morning_episode_bed.mp3',
+      episodeMixAssetPath: 'assets/audio/morning_episode_scored.mp3',
       fallbackQuest: fallbackQuest,
       createdAt: activeAlarmPlan?.createdAt ?? clock(),
     );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../audio/wake_saga_audio.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/cuts.dart';
@@ -50,6 +51,7 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
       'Go. The episode is live.',
     ];
     _armTicker();
+    unawaited(WakeSagaAudio.instance.playMorningEpisode());
   }
 
   void _armTicker() {
@@ -69,6 +71,11 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
   void _togglePlay() {
     HapticFeedback.selectionClick();
     setState(() => _playing = !_playing);
+    if (_playing) {
+      unawaited(WakeSagaAudio.instance.resumeMorningEpisode());
+    } else {
+      unawaited(WakeSagaAudio.instance.pauseMorningEpisode());
+    }
   }
 
   void _short() {
@@ -79,6 +86,7 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
 
   void _finish() {
     _ticker?.cancel();
+    unawaited(WakeSagaAudio.instance.stopMorningEpisode());
     if (!mounted) return;
     if (widget.replay) {
       Navigator.of(context).pop();
@@ -90,6 +98,7 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
   @override
   void dispose() {
     _ticker?.cancel();
+    unawaited(WakeSagaAudio.instance.stopMorningEpisode());
     super.dispose();
   }
 

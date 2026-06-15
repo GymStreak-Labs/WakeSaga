@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../audio/wake_saga_audio.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
 import '../widgets/cuts.dart';
@@ -96,6 +97,7 @@ class _WakeQuestState extends State<WakeQuest>
     if (_verified) return;
     HapticFeedback.heavyImpact();
     _pulse.stop();
+    unawaited(WakeSagaAudio.instance.markQuestCleared());
     setState(() => _verified = true);
     // Brief verify-green beat, then the earned unlock screen makes the reward
     // explicit before the title card and episode playback.
@@ -113,6 +115,7 @@ class _WakeQuestState extends State<WakeQuest>
     setState(() => _fails++);
     if (_fails >= 3) {
       // 3rd fail: the alarm ends. Filler logged. Never trap.
+      unawaited(WakeSagaAudio.instance.stopAlarm());
       final state = AppScope.of(context);
       state.logFiller();
       Navigator.of(context).popUntil((route) => route.isFirst);
@@ -371,89 +374,98 @@ class _CounterRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      key: const Key('questSurface'),
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 280,
-              height: 280,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Speed-line burst lands only at the moment of truth.
-                  AnimatedOpacity(
-                    opacity: verified ? 1 : 0,
-                    duration: const Duration(milliseconds: 180),
-                    child: const CustomPaint(
-                      painter: SpeedLinesPainter(
-                        color: InkSignal.verifyGreen,
-                        opacity: 0.2,
-                      ),
-                    ),
-                  ),
-                  CustomPaint(
-                    painter: _RingPainter(
-                      progress: count / target,
-                      color: verified
-                          ? InkSignal.verifyGreen
-                          : InkSignal.crimson,
-                    ),
-                    child: Center(
-                      // Pop on every tap: re-keyed tween snaps to 1.16x and
-                      // settles, so each rep visibly lands.
-                      child: TweenAnimationBuilder<double>(
-                        key: ValueKey(verified ? -1 : count),
-                        tween: Tween(begin: count == 0 ? 1.0 : 1.16, end: 1.0),
-                        duration: const Duration(milliseconds: 170),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, scale, child) =>
-                            Transform.scale(scale: scale, child: child),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              verified ? 'OFF' : '$count',
-                              style: InkSignal.display(
-                                verified ? 110 : 96,
-                                color: verified
-                                    ? InkSignal.verifyGreen
-                                    : InkSignal.paper,
-                              ),
-                            ),
-                            if (!verified) ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                '${target - count} MORE TO SILENCE',
-                                style: InkSignal.mono(
-                                  12,
-                                  color: InkSignal.paper.withValues(
-                                    alpha: 0.55,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
+    return Semantics(
+      button: true,
+      label: verified
+          ? 'Wake Quest cleared. Alarm off.'
+          : 'Do Wake Quest. $count of $target steps complete.',
+      child: GestureDetector(
+        key: const Key('questSurface'),
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 280,
+                height: 280,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Speed-line burst lands only at the moment of truth.
+                    AnimatedOpacity(
+                      opacity: verified ? 1 : 0,
+                      duration: const Duration(milliseconds: 180),
+                      child: const CustomPaint(
+                        painter: SpeedLinesPainter(
+                          color: InkSignal.verifyGreen,
+                          opacity: 0.2,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    CustomPaint(
+                      painter: _RingPainter(
+                        progress: count / target,
+                        color: verified
+                            ? InkSignal.verifyGreen
+                            : InkSignal.crimson,
+                      ),
+                      child: Center(
+                        // Pop on every tap: re-keyed tween snaps to 1.16x and
+                        // settles, so each rep visibly lands.
+                        child: TweenAnimationBuilder<double>(
+                          key: ValueKey(verified ? -1 : count),
+                          tween: Tween(
+                            begin: count == 0 ? 1.0 : 1.16,
+                            end: 1.0,
+                          ),
+                          duration: const Duration(milliseconds: 170),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, scale, child) =>
+                              Transform.scale(scale: scale, child: child),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                verified ? 'OFF' : '$count',
+                                style: InkSignal.display(
+                                  verified ? 110 : 96,
+                                  color: verified
+                                      ? InkSignal.verifyGreen
+                                      : InkSignal.paper,
+                                ),
+                              ),
+                              if (!verified) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${target - count} MORE TO SILENCE',
+                                  style: InkSignal.mono(
+                                    12,
+                                    color: InkSignal.paper.withValues(
+                                      alpha: 0.55,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              hint,
-              style: InkSignal.ui(
-                15,
-                color: InkSignal.paper.withValues(alpha: 0.4),
+              const SizedBox(height: 20),
+              Text(
+                hint,
+                style: InkSignal.ui(
+                  15,
+                  color: InkSignal.paper.withValues(alpha: 0.4),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

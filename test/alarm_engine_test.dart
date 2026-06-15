@@ -35,6 +35,8 @@ void main() {
     expect(restored.quest, 'Sky Photo');
     expect(restored.activeAlarmPlan?.mission, 'Beat the exam');
     expect(restored.scheduledAlarm?.engineMode, 'fake-compatibility');
+    expect(restored.activeAlarmPlan?.joltAssetPath, contains('wake_jolt'));
+    expect(restored.activeAlarmPlan?.episodeMixAssetPath, contains('episode'));
     expect(restored.expectedFires, hasLength(1));
     expect(restored.expectedFires.single.outcome, AlarmOutcome.pending);
   });
@@ -63,6 +65,9 @@ void main() {
       mission: 'Finish outline',
       narrator: 'Mentor',
       joltAssetPath: null,
+      episodeVoiceAssetPath: null,
+      episodeMusicAssetPath: null,
+      episodeMixAssetPath: null,
       fallbackQuest: 'Shake',
       createdAt: DateTime(2026, 6, 12),
     );
@@ -96,6 +101,9 @@ void main() {
       mission: 'Finish outline',
       narrator: 'Mentor',
       joltAssetPath: null,
+      episodeVoiceAssetPath: null,
+      episodeMusicAssetPath: null,
+      episodeMixAssetPath: null,
       fallbackQuest: 'Shake',
       createdAt: DateTime(2026, 6, 12),
     );

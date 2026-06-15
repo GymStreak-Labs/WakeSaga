@@ -247,8 +247,9 @@ The scored Morning Episode should also be generated before bed, not live at
 Do not use the Lyria bed as the main alarm signal. The alarm moment should stay
 urgent and direct; the generated score is the earned post-Wake-Quest reward.
 
-There is no audio dependency in the app today. The implementation needs an
-audio package plus native audio-session configuration:
+The Flutter prototype now uses `audioplayers` with bundled proof assets for the
+forceful Wake Jolt, alarm loop, quest-clear sting, and scored Morning Episode.
+Production still needs native audio-session configuration:
 
 - iOS: `AVAudioSession` playback category/behavior appropriate for alarm audio.
 - Android: foreground service audio focus and `USAGE_ALARM` attributes.

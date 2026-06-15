@@ -15,7 +15,8 @@ It is not yet a production alarm app. The current app does not schedule native
 notifications, critical alerts, AlarmKit/Android alarms, or background audio.
 Gemini/Flash TTS and Google Lyria music generation are planned but not wired.
 Wake Quest verification uses simulated controls, state is memory-only, payments
-are mock UI, and share/export is not real yet.
+are mock UI, share/export is not real yet, and generated audio is currently
+represented by bundled proof assets rather than live backend generation.
 
 ## Validation Run
 
@@ -47,11 +48,11 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Onboarding transitions | Prototype works | The duplicate animation glitch was fixed by managing the crimson swipe as a staged overlay instead of stacking route/page switch animations. |
 | First screen | Prototype works | The cold open starts with `Start your day like an anime character`. |
 | Native alarm scheduling | Missing | Dawn Rail is opened through an in-app/debug route. No native alarm/notification/critical-alert engine exists yet. |
-| Dawn Rail | Prototype works | `DawnTakeover -> WakeQuest -> TitleCardSlam -> EpisodePlayer -> CardMint` is a working in-app route pipeline. |
+| Dawn Rail | Prototype works | `DawnTakeover -> WakeQuest -> TitleCardSlam -> EpisodePlayer -> CardMint` is a working in-app route pipeline with bundled audio playback. |
 | Wake Quest verification | Simulated | Get Up and Shake are tap counters; Sky Photo is a fake viewfinder. No accelerometer, pedometer, camera, liveness, object/photo proof, or permissions yet. |
 | Failure ladder | Prototype works | Two failed verifies reveal a fallback; the third logs Filler and exits so the alarm does not trap the user. |
-| Wake Jolt | Prototype works | Alarm-screen copy now treats the jolt as a forceful physical command only: name, wake up, get up, move now. It does not explain mission/rival/story; those belong after Wake Quest clears. |
-| Morning Episode | Simulated | Script lines, score-ready UI, and timer-based playback exist. No Gemini/Flash TTS, Google Lyria bed generation, cached mix, subtitle/audio alignment, or background playback yet. |
+| Wake Jolt | Prototype works | Alarm-screen copy now treats the jolt as a forceful physical command only: name, wake up, get up, move now. A bundled forceful jolt asset plays when Dawn Rail opens. |
+| Morning Episode | Prototype works | Script lines, score-ready UI, timer-based playback, and bundled scored episode audio exist. No live Gemini/Flash TTS, live Google Lyria bed generation, dynamic cached mix, subtitle/audio alignment, or background playback yet. |
 | Title Card Slam | Prototype works | Episode title derives locally from mission text. No generated title-card media/export yet. |
 | Wake Card | Prototype works | Card mints locally with title, mission, wake time, quest, and simple foil logic. It does not use a real quest photo or create a real share/export. |
 | Today tab | Prototype works | State-aware Today has morning/day/night/post-miss modes, mission editing, lock-tomorrow CTA, comeback CTA, and loop rail. State is memory-only. |
@@ -60,7 +61,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Lock In | Simulated | Lock In exists as a fast in-app moment. No generated audio, timer, limits, or entitlement rules yet. |
 | Paywall/subscription | Mock only | Protagonist Pass UI exists. There is no RevenueCat, StoreKit, restore handling, purchase flow, or entitlement check. |
 | Persistence | Missing | `AppState` is an in-memory `ChangeNotifier`; first-run completion, settings, alarm time, mission, cards, and logs reset on restart. |
-| Backend/AI | Missing | No Firebase/auth/API proxy/Gemini/Flash TTS/Google Lyria/storage implementation yet. |
+| Backend/AI | Missing | No Firebase/auth/API proxy/Gemini/Flash TTS/Google Lyria/storage implementation yet. Bundled sample audio stands in for generated packages. |
 | Store/release readiness | Missing | Needs production app icon, screenshots, privacy strings, subscription products, native permissions, signing, and platform config hardening. |
 
 ## Onboarding Assessment
@@ -116,8 +117,8 @@ Detailed prompt seeds and implementation order live in
 3. Add permission primer screens that trigger native permission prompts at the
    right moment.
 4. Replace simulated Wake Quest taps with at least one real verification path.
-5. Wire a minimal real Gemini/Flash TTS + Google Lyria pipeline or keep all
-   audio clearly prototype-labeled.
+5. Replace bundled sample audio with a real Gemini/Flash TTS + Google Lyria
+   generation/cache pipeline.
 6. Add real Wake Card / Title Card export.
 7. Wire RevenueCat/StoreKit or remove purchase-facing UI from test builds.
 8. Harden iOS/Android release config, icons, privacy strings, and signing.

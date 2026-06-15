@@ -64,6 +64,9 @@ class AlarmPlan {
     required this.mission,
     required this.narrator,
     required this.joltAssetPath,
+    this.episodeVoiceAssetPath,
+    this.episodeMusicAssetPath,
+    this.episodeMixAssetPath,
     required this.fallbackQuest,
     required this.createdAt,
   });
@@ -77,6 +80,9 @@ class AlarmPlan {
   final String mission;
   final String narrator;
   final String? joltAssetPath;
+  final String? episodeVoiceAssetPath;
+  final String? episodeMusicAssetPath;
+  final String? episodeMixAssetPath;
   final String fallbackQuest;
   final DateTime createdAt;
 
@@ -100,6 +106,9 @@ class AlarmPlan {
     'mission': mission,
     'narrator': narrator,
     'joltAssetPath': joltAssetPath,
+    'episodeVoiceAssetPath': episodeVoiceAssetPath,
+    'episodeMusicAssetPath': episodeMusicAssetPath,
+    'episodeMixAssetPath': episodeMixAssetPath,
     'fallbackQuest': fallbackQuest,
     'createdAt': createdAt.toIso8601String(),
   };
@@ -120,6 +129,9 @@ class AlarmPlan {
       mission: json['mission'] as String? ?? 'Finish the essay outline',
       narrator: json['narrator'] as String? ?? 'Mentor',
       joltAssetPath: json['joltAssetPath'] as String?,
+      episodeVoiceAssetPath: json['episodeVoiceAssetPath'] as String?,
+      episodeMusicAssetPath: json['episodeMusicAssetPath'] as String?,
+      episodeMixAssetPath: json['episodeMixAssetPath'] as String?,
       fallbackQuest: json['fallbackQuest'] as String? ?? 'Shake',
       createdAt:
           DateTime.tryParse(json['createdAt'] as String? ?? '') ??
