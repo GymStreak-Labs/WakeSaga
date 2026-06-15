@@ -1200,7 +1200,7 @@ class _LoopRail extends StatelessWidget {
       _WakePathStep(
         number: '3',
         title: 'Episode unlocks',
-        detail: 'Morning Episode ${state.nextEpisode} plays',
+        detail: 'Voice + cinematic score play',
       ),
     ];
 

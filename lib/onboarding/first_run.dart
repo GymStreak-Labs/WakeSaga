@@ -474,7 +474,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'WAKE JOLT',
       title: 'What should the alarm say before the quest?',
       body:
-          'This is the short pre-quest audio. The full Morning Episode plays after the Wake Quest clears.',
+          'This is the short pre-quest audio. The scored Morning Episode plays after the Wake Quest clears.',
       choices: [
         _Choice('Calm command'),
         _Choice('Hero trailer'),
@@ -546,7 +546,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'RENDERING',
       title: 'Episode 1 is being staged.',
       body:
-          'Scanning rival... syncing narrator... staging Wake Quest... minting card frame...',
+          'Scanning rival... syncing narrator... scoring Morning Episode... staging Wake Quest... minting card frame...',
     ),
     _OnboardingStep(
       kind: _StepKind.reveal,
@@ -554,7 +554,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'EPISODE 1 READY',
       title: 'Tomorrow has an opening scene.',
       body:
-          'Alarm -> Wake Quest -> Title Card -> Morning Episode -> Wake Card.',
+          'Alarm -> Wake Quest -> Title Card -> scored Morning Episode -> Wake Card.',
     ),
     _OnboardingStep(
       kind: _StepKind.rating,
@@ -568,7 +568,8 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       entryTransition: _StepTransition.slam,
       kicker: 'PROTAGONIST PASS',
       title: 'Unlock the full Cold Open.',
-      body: 'Full voices, daily episodes, unlimited Lock Ins, and foil cards.',
+      body:
+          'Full voices, daily scored episodes, unlimited Lock Ins, and foil cards.',
     ),
   ];
 
@@ -1942,7 +1943,7 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
               const SizedBox(height: 10),
               Text(
                 'Episode 1 is staged for $time. Protagonist Pass unlocks '
-                'the voices, daily AI episodes, Lock Ins, and foil Wake Cards.',
+                'the voices, daily scored AI episodes, Lock Ins, and foil Wake Cards.',
                 style: InkSignal.ui(
                   17,
                   color: InkSignal.paper.withValues(alpha: 0.68),
@@ -1983,8 +1984,8 @@ class _HardPaywallStepState extends State<_HardPaywallStep> {
               const SizedBox(height: 14),
               for (final feature in const [
                 (
-                  'Personalized AI wake episodes',
-                  'Daily narrator scripts with callbacks to your real mornings.',
+                  'Scored AI wake episodes',
+                  'Narrator voice plus cinematic backing tracks built around your real mornings.',
                 ),
                 (
                   'Full cast + custom arcs',

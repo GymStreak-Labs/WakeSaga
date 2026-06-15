@@ -15,7 +15,8 @@ import 'title_card_slam.dart';
 ///    siren is the first reward);
 /// 2. burst — speed lines flash out from the stamp;
 /// 3. payoff — MORNING EPISODE UNLOCKED rises in gold (the one gold moment
-///    of the morning) before the title card slams.
+///    of the morning) and the generated score bed is allowed to begin before
+///    the title card slams.
 class EpisodeUnlock extends StatefulWidget {
   const EpisodeUnlock({super.key});
 
@@ -220,7 +221,7 @@ class _EpisodeUnlockState extends State<EpisodeUnlock>
                             child: Column(
                               children: [
                                 Text(
-                                  'TITLE CARD INCOMING',
+                                  'SCORE + TITLE CARD INCOMING',
                                   style: InkSignal.mono(
                                     12,
                                     color: InkSignal.paper.withValues(

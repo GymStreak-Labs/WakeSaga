@@ -13,9 +13,9 @@ Pass paywall surface.
 
 It is not yet a production alarm app. The current app does not schedule native
 notifications, critical alerts, AlarmKit/Android alarms, or background audio.
-Gemini/Flash TTS is planned but not wired. Wake Quest verification uses
-simulated controls, state is memory-only, payments are mock UI, and share/export
-is not real yet.
+Gemini/Flash TTS and Google Lyria music generation are planned but not wired.
+Wake Quest verification uses simulated controls, state is memory-only, payments
+are mock UI, and share/export is not real yet.
 
 ## Validation Run
 
@@ -50,7 +50,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Dawn Rail | Prototype works | `DawnTakeover -> WakeQuest -> TitleCardSlam -> EpisodePlayer -> CardMint` is a working in-app route pipeline. |
 | Wake Quest verification | Simulated | Get Up and Shake are tap counters; Sky Photo is a fake viewfinder. No accelerometer, pedometer, camera, liveness, object/photo proof, or permissions yet. |
 | Failure ladder | Prototype works | Two failed verifies reveal a fallback; the third logs Filler and exits so the alarm does not trap the user. |
-| Morning Episode | Simulated | Script lines and timer-based playback exist. No Gemini/Flash TTS, cached audio, subtitle/audio alignment, or background playback yet. |
+| Morning Episode | Simulated | Script lines, score-ready UI, and timer-based playback exist. No Gemini/Flash TTS, Google Lyria bed generation, cached mix, subtitle/audio alignment, or background playback yet. |
 | Title Card Slam | Prototype works | Episode title derives locally from mission text. No generated title-card media/export yet. |
 | Wake Card | Prototype works | Card mints locally with title, mission, wake time, quest, and simple foil logic. It does not use a real quest photo or create a real share/export. |
 | Today tab | Prototype works | State-aware Today has morning/day/night/post-miss modes, mission editing, lock-tomorrow CTA, comeback CTA, and loop rail. State is memory-only. |
@@ -59,7 +59,7 @@ camera/motion verification, purchases, persistence, or generated audio.
 | Lock In | Simulated | Lock In exists as a fast in-app moment. No generated audio, timer, limits, or entitlement rules yet. |
 | Paywall/subscription | Mock only | Protagonist Pass UI exists. There is no RevenueCat, StoreKit, restore handling, purchase flow, or entitlement check. |
 | Persistence | Missing | `AppState` is an in-memory `ChangeNotifier`; first-run completion, settings, alarm time, mission, cards, and logs reset on restart. |
-| Backend/AI | Missing | No Firebase/auth/API proxy/Gemini/Flash TTS/storage implementation yet. |
+| Backend/AI | Missing | No Firebase/auth/API proxy/Gemini/Flash TTS/Google Lyria/storage implementation yet. |
 | Store/release readiness | Missing | Needs production app icon, screenshots, privacy strings, subscription products, native permissions, signing, and platform config hardening. |
 
 ## Onboarding Assessment
@@ -115,8 +115,8 @@ Detailed prompt seeds and implementation order live in
 3. Add permission primer screens that trigger native permission prompts at the
    right moment.
 4. Replace simulated Wake Quest taps with at least one real verification path.
-5. Wire a minimal real Gemini/Flash TTS pipeline or keep all audio clearly
-   prototype-labeled.
+5. Wire a minimal real Gemini/Flash TTS + Google Lyria pipeline or keep all
+   audio clearly prototype-labeled.
 6. Add real Wake Card / Title Card export.
 7. Wire RevenueCat/StoreKit or remove purchase-facing UI from test builds.
 8. Harden iOS/Android release config, icons, privacy strings, and signing.
@@ -129,6 +129,8 @@ Detailed prompt seeds and implementation order live in
 - Today/Saga/Profile is the right app-section structure for an awake user.
 - Dawn Rail is the right morning structure for a half-asleep user: no nav, one
   primary action, visible fallback.
+- The Morning Episode now has the correct product promise: voice after proof,
+  with a cinematic score as the earned reward layer.
 - Failure-as-canon and additive episode count are implemented at the model
   level.
 - The design language is distinctive enough to continue building real product

@@ -27,15 +27,17 @@ episode" framing.
 
 - **Night (optional, 30s, never required)**: alarm always armed by default. One optional prompt
   ("Tomorrow's mission?"), then the TO BE CONTINUED stinger + generated Cliffhanger Teaser.
-  Episode audio generates server-side overnight — mornings need zero network.
+  Episode audio generates server-side overnight — voice, instrumental score,
+  subtitles, and mix. Mornings need zero network.
 - **Alarm**: Dawn Rail takeover. 8s personalized Cold Open in the narrator's voice with the user's
   real name/history, then tone escalates. One crimson BEGIN QUEST slab; visible labeled
   "FILLER (snooze 9 min)"; week-1 sick-day escape.
 - **Quest (30–90s)**: one 64pt instruction, sensor IS the screen. Failure ladder: 2 fails →
   fallback quest, 3 fails → alarm ends, Filler logged. The alarm never traps.
 - **Payoff (90s, skippable from second zero)**: TITLE CARD SLAM ("EPISODE 48: THE ESSAY DEMON"),
-  Morning Episode with anime subtitles + Short Mode, Wake Card mint (screentone manga panel,
-  truth-based foils), one-tap 9:16 share. Then: "Go. The episode is live."
+  Morning Episode with narrator voice, generated instrumental score, anime subtitles + Short Mode,
+  Wake Card mint (screentone manga panel, truth-based foils), one-tap 9:16 share.
+  Then: "Go. The episode is live."
 - **Day**: pull-only, zero daytime pushes. One giant LOCK IN → 4 chips → 25s hype clip.
 - **Failure**: a miss is a KNOCKDOWN — red-ink canon chapter + Comeback Quest. Episode count is
   additive and unbreakable; dead arcs archive as finished volumes, never reset to zero.
@@ -93,7 +95,7 @@ Two modes for two brains:
 1. Alarm engine + Dawn Rail skeleton (trust floor)
 2. Wake Quest verification + failure ladder (3 quests, not 8)
 3. Title Card Slam + Wake Card mint (share engine; works before audio exists)
-4. Morning Episode pipeline (overnight Gemini/Flash TTS + behavior-log memory + anti-sameness)
+4. Morning Episode pipeline (overnight Gemini/Flash TTS + Google Lyria instrumental bed + ducked mix + behavior-log memory + anti-sameness)
 5. Today state machine + Alarm Sheet
 6. Saga shelf
 7. Lock In (smallest feature — do not let it grow)

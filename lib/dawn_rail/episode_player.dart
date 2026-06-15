@@ -10,7 +10,8 @@ import '../widgets/screentone.dart';
 import 'card_mint.dart';
 
 /// Dawn Rail step 4 — the Morning Episode player.
-/// Audio is SIMULATED: a line timer stands in for narrated playback.
+/// Audio is SIMULATED: a line timer stands in for narrated playback and the
+/// generated score bed.
 /// Narrator block, line-by-line subtitles (current white, past 35%),
 /// big play/pause, SKIP visible from second zero, "Short" chip.
 class EpisodePlayer extends StatefulWidget {
@@ -44,7 +45,8 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
       '${state.userName}. Episode $ep. You actually stood up.',
       '${state.rival} tried to keep the opening scene.',
       'The mission: $mission.',
-      '$quest is cleared. ${state.wakeJolt} is live.',
+      '$quest is cleared. The score comes in now.',
+      '${state.wakeJolt} becomes the first scene.',
       'Go. The episode is live.',
     ];
     _armTicker();
@@ -115,7 +117,9 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
                 ),
                 const SizedBox(height: 14),
                 _NarratorBlock(narrator: state.narrator, playing: _playing),
-                const SizedBox(height: 28),
+                const SizedBox(height: 12),
+                const _ScoreBedStrip(),
+                const SizedBox(height: 22),
                 // Subtitle list, lower-third style: current line white,
                 // past lines at 35%, future lines barely there.
                 Expanded(
@@ -283,6 +287,51 @@ class _NarratorBlock extends StatelessWidget {
               color: InkSignal.paper.withValues(alpha: 0.45),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScoreBedStrip extends StatelessWidget {
+  const _ScoreBedStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: InkSignal.panel(color: const Color(0xFF101722)),
+      child: Row(
+        children: [
+          Text(
+            'SCORE BED',
+            style: InkSignal.mono(
+              11,
+              color: InkSignal.paper.withValues(alpha: 0.44),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Cinematic instrumental begins after proof',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: InkSignal.ui(
+                14,
+                color: InkSignal.paper.withValues(alpha: 0.68),
+                weight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          for (var i = 0; i < 5; i++)
+            Container(
+              width: 3,
+              height: (8 + i * 3).toDouble(),
+              margin: const EdgeInsets.only(left: 3),
+              color: InkSignal.paper.withValues(alpha: 0.32),
+            ),
         ],
       ),
     );

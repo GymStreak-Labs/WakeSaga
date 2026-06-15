@@ -412,7 +412,7 @@ class _VoiceStylePanel extends StatelessWidget {
       title: state.wakeJolt,
       children: [
         Text(
-          'Short voice lines while the alarm rings. Clear the Wake Quest, then the full Morning Episode begins.',
+          'Short voice lines while the alarm rings. Clear the Wake Quest, then the full Morning Episode begins with narrator voice and cinematic score.',
           style: InkSignal.ui(
             15,
             color: InkSignal.paper.withValues(alpha: 0.6),

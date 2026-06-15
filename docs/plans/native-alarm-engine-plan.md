@@ -19,7 +19,8 @@ experience. Native code owns waking the device and launching that experience.
 8. WakeSaga shows the epic in-app alarm takeover.
 9. The user enters Wake Quest.
 10. Completing Wake Quest silences the in-app alarm, records the clear, reveals
-    `MORNING EPISODE UNLOCKED`, then plays the Morning Episode.
+    `MORNING EPISODE UNLOCKED`, then plays the Morning Episode with the cached
+    voiceover and cinematic instrumental score.
 11. If the user uses an OS/system stop path, WakeSaga records a Filler/Emergency
     Stop instead of pretending the quest was cleared.
 
@@ -171,6 +172,9 @@ Create `AlarmPlan` with:
 - `mission`
 - `narrator`
 - `joltAssetPath`
+- `episodeVoiceAssetPath`
+- `episodeMusicAssetPath`
+- `episodeMixAssetPath`
 - `fallbackQuest`
 - `createdAt`
 
@@ -220,6 +224,23 @@ The reliable first wake signal should be the OS alarm. The personalized
 Gemini/Flash TTS jolt should be pre-generated before bed and played immediately
 inside WakeSaga once Dawn Rail opens. Do not promise custom AI audio as the
 system-level iOS alarm sound until AlarmKit device testing proves that path.
+
+The scored Morning Episode should also be generated before bed, not live at
+6:30am. Treat it as an `EpisodeAudioPackage`:
+
+1. Generate the episode script and subtitles from mission, rival, quest, recent
+   outcomes, and narrator.
+2. Render narrator voice with Gemini/Flash TTS.
+3. Render an instrumental-only Google Lyria bed. Prompt by arc, intensity, and
+   narrator, with explicit constraints: no vocals, no lyrics, no copyrighted
+   themes, and leave midrange space for narration.
+4. Mix server-side with voice-first ducking, loudness normalization, and a
+   bundled fallback bed if Lyria fails or times out.
+5. Cache the voice, music, mixed file, and subtitle timing locally before the
+   alarm fires.
+
+Do not use the Lyria bed as the main alarm signal. The alarm moment should stay
+urgent and direct; the generated score is the earned post-Wake-Quest reward.
 
 There is no audio dependency in the app today. The implementation needs an
 audio package plus native audio-session configuration:

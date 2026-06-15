@@ -8,7 +8,7 @@ An AI alarm clock that wakes users into their own training arc, then gives them 
 2. **Night setup** — user chooses tomorrow's mission: study, gym, deep work, comeback, monk mode, recovery.
 3. **Wake-up jolt** — short personalized alarm audio, generated before the alarm time.
 4. **Wake Quest** — the alarm is cleared by a tiny physical proof mission: Object Hunt, Sky Photo, Make Bed, Pushups, Water Check, Desk Photo, Shoes On, or Spoken Vow.
-5. **Morning Episode** — after the Wake Quest is complete, a cinematic 60–120 second motivational speech sets the day's stage.
+5. **Morning Episode** — after the Wake Quest is complete, a cinematic 60–120 second motivational speech sets the day's stage with a generated instrumental score underneath.
 6. **First action / receipt** — user starts the mission and saves a collectible Wake Receipt.
 7. **Lock In** — on-demand short clips before hard tasks during the day.
 8. **End Credits** — night reflection, reward/card, and tomorrow's mission.
@@ -17,7 +17,7 @@ An AI alarm clock that wakes users into their own training arc, then gives them 
 - Onboarding: long Episode 001 Builder with diagnosis questions, education interstitials, mission/rival/narrator setup, Wake Quest configuration, commitment, rendering checklist, plan reveal, account prompt, and mock paywall/downsell screens.
 - Tonight: choose tomorrow's mission.
 - Alarm setup: preview tomorrow's wake-up jolt and complete the configured Wake Quest.
-- Morning Episode: title, mission, speech player, unlocked after Wake Quest completion.
+- Morning Episode: title, mission, speech/player, generated cinematic score bed, unlocked after Wake Quest completion.
 - Lock In: 30s / 90s / 3min motivational clip generator.
 - Episode Cards: saved day cards and quotes.
 - End Credits: reflection + tomorrow setup.
@@ -49,7 +49,9 @@ The current prototype implements this as a data-driven Episode Builder with 45 s
 
 ## Technical notes
 - Generate/cache the alarm audio before sleep, not at alarm fire time.
-- Keep alarm clip short; full speech happens in-app after wake.
+- Generate/cache the Morning Episode package before sleep: script, Gemini/Flash TTS voice, Google Lyria instrumental bed, subtitle timing, and a ducked voice-first mix.
+- Keep alarm clip short and urgent; the full scored speech happens in-app after Wake Quest clears.
+- Keep generated music instrumental-only, non-copyrighted, and mixed below narration so speech intelligibility wins.
 - Use platform-native alarm/notification capabilities, with AlarmKit where suitable on iOS and stronger alarm behavior on Android.
 - Avoid anime IP: no copyrighted characters, clips, OSTs, or voice imitation.
 
@@ -58,7 +60,7 @@ Prototype the full loop without payments:
 - Complete the Episode 001 Builder.
 - Create tomorrow mission and Wake Quest.
 - Generate text script.
-- Generate/cached TTS audio.
+- Generate/cached TTS audio and a cached instrumental Morning Episode bed.
 - Schedule local alarm/notification.
 - Complete the Wake Quest.
 - Open Morning Episode screen.
