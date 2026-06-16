@@ -26,13 +26,46 @@ For each armed episode, generate and cache:
 - `episode_script`: 60-120 second script with mission, rival, first move, and
   callback to recent history.
 - `episode_voice`: Gemini/Flash TTS render of the script.
-- `episode_music_bed`: Google Lyria instrumental score bed.
-- `episode_mix`: ducked final mix with voice prioritized over music.
+- `episode_music_bed_id`: ID of a bundled/pre-cached instrumental bed selected
+  by the app.
 - `subtitle_timing`: line or phrase timing for anime-style lower-third captions.
 
-## Lyria Prompt Rules
+Do not generate background music per user in production v1. The recurring AI
+cost should be script + voice only.
 
-Lyria prompts should be structured and guardrailed:
+## Bundled Music Library
+
+WakeSaga should generate a small library of original instrumental beds before
+launch and bundle them into the app, or deliver them as pre-cached remote
+assets. The app then picks a bed locally for each episode.
+
+Recommended treatments:
+
+- `dawn_rise`: hopeful first-day bed.
+- `rival_pulse`: aggressive wake-up aftermath.
+- `deep_work_tension`: study/focus bed.
+- `gym_charge`: movement/training bed.
+- `comeback_low`: post-miss recovery bed.
+- `monk_mode_minimal`: sparse disciplined bed.
+- `recovery_soft`: gentle low-mood bed.
+- `victory_foil`: milestone/share-card bed.
+
+Selection rule:
+
+```text
+candidate beds = filter by arc + intensity + user mode
+exclude last 2-3 recently used beds
+seed = userId + episodeNumber + localDate
+pick weighted random candidate
+save musicBedAssetId to the episode record
+```
+
+This gives variety while keeping replay/share consistent.
+
+## Offline Music Generation Prompt Rules
+
+If using Lyria or another text-to-music model to create the bundled library,
+prompts should be structured and guardrailed:
 
 - instrumental only;
 - no vocals, lyrics, chants, or recognizable melodies;
@@ -52,11 +85,14 @@ sunrise. Low strings, taiko-style drums, soft synth pulse, brief brass lift.
 Structure: quiet tension, rising pulse, heroic lift, clean resolve.
 ```
 
-## Mix Rules
+## Client-Side Mix Rules
 
 - Narration stays intelligible at all times.
+- Music is played as a separate local track.
 - Music ducks under voice and rises only between phrases.
-- Loudness-normalize the final mix for phone speakers.
+- Fade music in only after Wake Quest clears.
+- Fade music out when the episode ends or is skipped.
+- Loudness-normalize all bundled beds for phone speakers before shipping.
 - Keep a bundled fallback instrumental for offline/failure cases.
 - Cache before the alarm; never block the morning on live generation.
 
@@ -66,10 +102,11 @@ The mobile app should not hold provider API keys. Use a callable backend:
 
 1. App arms episode and sends a signed generation request.
 2. Backend checks auth, entitlement, quota, and App Check.
-3. Backend generates script, TTS, Lyria bed, and mix.
-4. Backend stores signed/cached audio package metadata.
-5. App downloads the package before bedtime or on the next launch.
-6. Dawn Rail plays local files after Wake Quest clear.
+3. Backend generates script and TTS voice assets.
+4. Backend stores signed/cached voice package metadata.
+5. App selects a bundled/pre-cached music bed and saves `musicBedAssetId`.
+6. App downloads voice before bedtime or on the next launch.
+7. Dawn Rail plays local voice + local music bed after Wake Quest clear.
 
 If generation fails, WakeSaga should still arm the alarm with:
 
@@ -96,6 +133,13 @@ The current Flutter prototype uses bundled assets in `assets/audio/`:
 4. Morning Episode plays the scored mix.
 
 This proves the product timing before the backend generation/cache path exists.
+
+Production v1 should evolve this into:
+
+- generated `wake_jolt_voice`;
+- generated `episode_voice`;
+- selected bundled `episode_music_bed_id`;
+- client-side layered playback with ducking/fades.
 
 ## Wake Jolt Prompt Rules
 

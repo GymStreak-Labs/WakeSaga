@@ -30,12 +30,31 @@ One premium morning package:
 
 - 10 second forceful Wake Jolt.
 - 75 second Morning Episode voiceover.
-- Optional 30 second cinematic music bed looped on device.
+- Bundled/pre-generated cinematic music bed selected locally.
 - App plays voice and music as separate local tracks with ducking/fades.
-- Audio is generated before the alarm window, downloaded, and cached locally.
+- Voice audio is generated before the alarm window, downloaded, and cached
+  locally.
 
 The alarm moment must never require network. If generation fails, the app uses
 bundled fallback jolt/music and a local script.
+
+## Current Cost Decision: Bundle Music, Generate Voice
+
+WakeSaga should not generate background music per user in production v1.
+Instead, generate a strong library of cinematic music treatments before launch,
+ship them in the app or as pre-cached remote assets, and select one locally for
+each episode.
+
+This removes the largest per-user variable cost while preserving the premium
+feel:
+
+```text
+Production v1 variable generation = script + Wake Jolt TTS + episode TTS
+Production v1 music = bundled/pre-cached beds, selected locally
+```
+
+Fresh text-to-music can return later for milestone moments, paid add-ons, or
+share/export packs, but it should not be part of the daily generation loop.
 
 ## Per-Episode AI COGS
 
@@ -43,7 +62,7 @@ Approximate costs:
 
 | Package | Cost per generated morning | Monthly cost for daily active user |
 | --- | ---: | ---: |
-| Voice only, Gemini 2.5 Flash TTS | ~$0.022 | ~$0.65 |
+| Voice + bundled music bed | ~$0.022 | ~$0.65 |
 | Voice + fresh Lyria 3 30s bed daily | ~$0.062 | ~$1.85 |
 | Voice + fresh Lyria 3 Pro song daily | ~$0.102 | ~$3.05 |
 
@@ -52,18 +71,20 @@ assuming short prompts and 60-120 second scripts. Storage and egress are also
 small versus TTS/music if packages are downloaded once and retained with a
 short TTL.
 
+The first row is the recommended production v1 path.
+
 ## Subscriber Scale Scenarios
 
-Assume 60% of subscribers generate a Morning Episode on a given day.
+Assume music is bundled/pre-cached and the only daily AI cost is generated
+voice/script. Subscriber usage matters more than subscriber count.
 
-| Subscribers | Daily voice + daily Lyria | Daily voice + weekly Lyria | Daily voice + library music |
-| ---: | ---: | ---: | ---: |
-| 10,000 | ~$11,100/mo | ~$5,500/mo | ~$3,900/mo |
-| 100,000 | ~$111,000/mo | ~$55,000/mo | ~$39,000/mo |
+| Subscribers | 40% daily usage | 60% daily usage | 80% daily usage | 100% daily usage |
+| ---: | ---: | ---: | ---: | ---: |
+| 10,000 | ~$2,600/mo | ~$3,900/mo | ~$5,200/mo | ~$6,500/mo |
+| 100,000 | ~$26,000/mo | ~$39,000/mo | ~$52,000/mo | ~$65,000/mo |
 
-The dangerous version is fresh AI music every day for every user. The safer
-version is daily generated voice with music reused by arc/week, or a curated
-music-bed library.
+This is the economics unlock: production music generation disappears from the
+recurring user-level cost line.
 
 ## Revenue Benchmarks
 
@@ -72,14 +93,24 @@ Conservative net revenue after a 30% store cut:
 | Product | Net ARPU |
 | --- | ---: |
 | $29.99/year special | ~$1.75/user/month |
+| $39.99/year annual | ~$2.33/user/month |
 | $59.99/year annual | ~$3.50/user/month |
 | $6.99/week | ~$21.20/user/month |
 
+At 60% daily usage, generated voice costs roughly `$0.39/user/month`.
+
+| Product | AI COGS at 60% usage | AI gross margin before cloud/support |
+| --- | ---: | ---: |
+| $29.99/year special | ~$0.39/user/month | ~78% |
+| $39.99/year annual | ~$0.39/user/month | ~83% |
+| $59.99/year annual | ~$0.39/user/month | ~89% |
+| $6.99/week | ~$0.39/user/month | ~98% |
+
 Implication:
 
-- $29.99/year can support daily voice, but not unlimited daily fresh AI music
-  with much margin.
-- $59.99/year can support a richer daily package if music is controlled.
+- $29.99/year becomes workable if music is bundled/reused.
+- $39.99/year gives more room for trials, free pilot credits, and overhead.
+- $59.99/year supports richer AI usage, more Lock Ins, and healthier margin.
 - Weekly pricing has plenty of AI margin, but churn and conversion must carry
   the business.
 
@@ -94,49 +125,69 @@ Backend produces an `EpisodeAudioPackage`:
   "scriptId": "...",
   "wakeJoltUrl": "...",
   "episodeVoiceUrl": "...",
-  "musicBedUrl": "...",
+  "musicBedAssetId": "rival_dawn_03",
   "durationSeconds": 75,
   "modelCosts": {
     "scriptUsd": 0.001,
     "ttsUsd": 0.022,
-    "musicUsd": 0.04
+    "musicUsd": 0
   },
   "expiresAt": "..."
 }
 ```
 
-The app downloads the assets before the wake window and plays them locally.
-No provider keys ship in the app.
+The app downloads voice before the wake window and plays it locally over a
+bundled/pre-cached music bed. No provider keys ship in the app.
 
 ### 2. Use Client-Side Layered Playback For V1
 
-Do not server-mix every episode by default. Generate/cache voice and music as
-separate assets:
+Do not server-mix every episode by default. Generate/cache voice and select
+music locally:
 
 ```text
-episodeVoice.mp3 + musicBed.mp3
+episodeVoice.mp3 + bundledMusicBed(assetId)
 ```
 
 The app starts both after Wake Quest clears, ducks the music under voice, and
 fades the bed at the end. Server-side mixes are optional later for sharing or
 exports.
 
-### 3. Reuse Music Aggressively
+### 3. Bundle Music Treatments
 
-Cost-safe tiers:
+Ship a music library with several reusable treatments:
 
-- Daily generated voice.
-- Weekly/arc-level generated music bed.
-- Curated bundled music library for most days.
-- Fresh Lyria music only for premium moments: first day, milestone, comeback,
-  new arc, or user-triggered regeneration.
+- `dawn_rise`: hopeful first-day bed.
+- `rival_pulse`: aggressive wake-up aftermath.
+- `deep_work_tension`: study/focus bed.
+- `gym_charge`: movement/training bed.
+- `comeback_low`: post-miss recovery bed.
+- `monk_mode_minimal`: sparse disciplined bed.
+- `recovery_soft`: gentle low-mood bed.
+- `victory_foil`: milestone/share-card bed.
 
-### 4. Meter Expensive Actions
+Each bed should be instrumental, loopable, phone-speaker-safe, and designed to
+leave room for narration.
+
+### 4. Select Music Locally
+
+Selection should be deterministic enough to avoid repeats, but varied enough to
+feel alive:
+
+```text
+candidate beds = filter by arc + intensity + user mode
+exclude last 2-3 recently used beds
+seed = userId + episodeNumber + localDate
+pick weighted random candidate
+```
+
+The selected `musicBedAssetId` is saved into the episode record so replay and
+share cards are consistent.
+
+### 5. Meter Expensive Actions
 
 Backend should enforce:
 
 - `dailyEpisodeGenerations`
-- `musicGenerationsPerMonth`
 - `lockInClipsPerDay`
 - `regenerationsPerDay`
 - `maxEpisodeSeconds`
@@ -146,19 +197,17 @@ Backend should enforce:
 
 The app should show premium value, but the backend owns quotas.
 
-### 5. Cache By Reusable Inputs
+### 6. Cache By Reusable Inputs
 
-Cache generated assets by:
+Cache generated voice assets by:
 
 - voice/narrator
 - intensity
 - arc
-- music style
 - locale
 - episode length band
 
-Avoid regenerating the same style bed for every user when a reusable bed will
-feel just as good.
+Music beds are app assets. Avoid per-user music generation entirely in v1.
 
 ## Hard Paywall Model
 
@@ -171,10 +220,10 @@ Hard paywall is the safest cost model:
 
 Recommended if hard paywall:
 
-- Special offer can stay at $29.99/year only if daily music generation is not
-  unlimited.
-- Default annual should likely be closer to $59.99/year if the promise is daily
-  generated voice plus periodic generated music.
+- Special offer can stay at $29.99/year if the daily generated asset is voice
+  only and music is bundled.
+- Default annual at $39.99-$59.99/year gives more margin for Lock Ins, free
+  trials, and failed generation retries.
 - Weekly can include the richest version.
 
 ## Freemium Model
@@ -186,14 +235,14 @@ Good free tier:
 - native alarm
 - Wake Quest
 - bundled forceful Wake Jolt
+- bundled music beds
 - local/bundled Morning Episode template
 - limited receipts/streaks
-- maybe 1 generated pilot episode or 1-3 AI credits total
+- maybe 1 generated voice pilot episode or 1-3 AI voice credits total
 
 Bad free tier:
 
 - daily generated TTS
-- daily generated music
 - unlimited Lock In clips
 - repeated regenerations
 
@@ -202,15 +251,15 @@ Freemium cost examples:
 | Free offer | Cost risk |
 | --- | --- |
 | Local/bundled only | Very low |
-| 1 generated pilot for each new signup | ~$0.06 per signup if voice + one Lyria bed |
-| 3 generated episodes per MAU/month | ~$0.18 per MAU/month with music, too risky at scale |
+| 1 generated voice pilot for each new signup | ~$0.022 per signup |
+| 2 generated free voice episodes / MAU / month | ~$0.044 per MAU/month |
 | Daily generated episodes for free users | Not viable |
 
 Freemium recommendation:
 
 - Free users get the behavior loop, not the expensive AI loop.
 - Use credits: `1 free AI Episode`, then premium or paid credits.
-- Keep music generation premium-only.
+- Keep all music bundled/pre-cached.
 - Free Lock In should be bundled/template clips, not generated clips.
 
 ## Best Initial Decision
@@ -218,7 +267,7 @@ Freemium recommendation:
 Launch with a hard paywall or very tight freemium:
 
 1. Daily generated voice is okay for paid users.
-2. Fresh AI music should be milestone/weekly/arc-level, not daily by default.
+2. Background music should be bundled/pre-cached, not generated in production.
 3. App-side layered playback should be v1.
 4. Backend quotas must exist before any public freemium test.
 5. Track `grossMarginPerActiveSubscriber` from day one:
@@ -233,4 +282,4 @@ net_subscription_revenue
 ```
 
 The product should feel premium through timing, writing, voice, animation, and
-reuse of strong music beds, not through unbounded daily media generation.
+strong bundled music direction, not through unbounded daily media generation.
