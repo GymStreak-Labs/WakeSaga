@@ -62,6 +62,7 @@ flutter:
 
   assets:
     - assets/audio/
+    - assets/audio/music_beds/
     - assets/brand/
     - assets/narrators/
     - assets/onboarding/

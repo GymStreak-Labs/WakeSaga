@@ -36,7 +36,16 @@ void main() {
     expect(restored.activeAlarmPlan?.mission, 'Beat the exam');
     expect(restored.scheduledAlarm?.engineMode, 'fake-compatibility');
     expect(restored.activeAlarmPlan?.joltAssetPath, contains('wake_jolt'));
-    expect(restored.activeAlarmPlan?.episodeMixAssetPath, contains('episode'));
+    expect(
+      restored.activeAlarmPlan?.episodeVoiceAssetPath,
+      contains('episode_voice_sample'),
+    );
+    expect(restored.activeAlarmPlan?.episodeMusicBedId, isNotNull);
+    expect(
+      restored.activeAlarmPlan?.episodeMusicAssetPath,
+      contains('assets/audio/music_beds/'),
+    );
+    expect(restored.activeAlarmPlan?.episodeMixAssetPath, isNull);
     expect(restored.expectedFires, hasLength(1));
     expect(restored.expectedFires.single.outcome, AlarmOutcome.pending);
   });

@@ -65,6 +65,7 @@ class AlarmPlan {
     required this.narrator,
     required this.joltAssetPath,
     this.episodeVoiceAssetPath,
+    this.episodeMusicBedId,
     this.episodeMusicAssetPath,
     this.episodeMixAssetPath,
     required this.fallbackQuest,
@@ -81,6 +82,7 @@ class AlarmPlan {
   final String narrator;
   final String? joltAssetPath;
   final String? episodeVoiceAssetPath;
+  final String? episodeMusicBedId;
   final String? episodeMusicAssetPath;
   final String? episodeMixAssetPath;
   final String fallbackQuest;
@@ -107,6 +109,7 @@ class AlarmPlan {
     'narrator': narrator,
     'joltAssetPath': joltAssetPath,
     'episodeVoiceAssetPath': episodeVoiceAssetPath,
+    'episodeMusicBedId': episodeMusicBedId,
     'episodeMusicAssetPath': episodeMusicAssetPath,
     'episodeMixAssetPath': episodeMixAssetPath,
     'fallbackQuest': fallbackQuest,
@@ -130,6 +133,7 @@ class AlarmPlan {
       narrator: json['narrator'] as String? ?? 'Mentor',
       joltAssetPath: json['joltAssetPath'] as String?,
       episodeVoiceAssetPath: json['episodeVoiceAssetPath'] as String?,
+      episodeMusicBedId: json['episodeMusicBedId'] as String?,
       episodeMusicAssetPath: json['episodeMusicAssetPath'] as String?,
       episodeMixAssetPath: json['episodeMixAssetPath'] as String?,
       fallbackQuest: json['fallbackQuest'] as String? ?? 'Shake',

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -8,16 +10,23 @@ import 'package:flutter/widgets.dart';
 /// `EpisodeAudioPackage` downloaded from the backend. The lifecycle should
 /// remain the same:
 /// alarm loop + Wake Jolt while ringing, stop on Wake Quest clear, then play
-/// the scored Morning Episode.
+/// cached/generated voice over a bundled score bed.
 class WakeSagaAudio {
   WakeSagaAudio._();
 
   static final WakeSagaAudio instance = WakeSagaAudio._();
+  static const _fallbackVoiceAsset = 'assets/audio/episode_voice_sample.mp3';
+  static const _fallbackMusicAsset = 'assets/audio/music_beds/dawn_rise.mp3';
+  static const _episodeMusicVolume = 0.24;
 
   AudioPlayer? _alarmLoop;
   AudioPlayer? _wakeJolt;
   AudioPlayer? _questSting;
-  AudioPlayer? _episode;
+  AudioPlayer? _episodeVoice;
+  AudioPlayer? _episodeMusic;
+  StreamSubscription<void>? _episodeVoiceComplete;
+  double _currentEpisodeMusicVolume = 0;
+  int _episodeFadeToken = 0;
 
   bool _disabled = false;
   bool _alarmActive = false;
@@ -26,10 +35,9 @@ class WakeSagaAudio {
     if (_shouldSkipAudio || _alarmActive) return;
     _alarmActive = true;
     await _run(() async {
-      final episode = _episodePlayer;
       final alarmLoop = _alarmLoopPlayer;
       final wakeJolt = _wakeJoltPlayer;
-      await episode.stop();
+      await _stopMorningEpisodeNow();
       await alarmLoop.setReleaseMode(ReleaseMode.loop);
       await alarmLoop.play(
         AssetSource('audio/alarm_pulse_loop.mp3'),
@@ -66,43 +74,69 @@ class WakeSagaAudio {
     });
   }
 
-  Future<void> playMorningEpisode() async {
+  Future<void> playMorningEpisode({
+    String? voiceAssetPath,
+    String? musicAssetPath,
+  }) async {
     await _run(() async {
-      final episode = _episodePlayer;
-      await episode.stop();
-      await episode.setReleaseMode(ReleaseMode.stop);
-      await episode.play(
-        AssetSource('audio/morning_episode_scored.mp3'),
+      final voice = _episodeVoicePlayer;
+      final music = _episodeMusicPlayer;
+      await _stopMorningEpisodeNow();
+      await music.setReleaseMode(ReleaseMode.loop);
+      _currentEpisodeMusicVolume = 0;
+      await music.play(
+        _sourceForPath(musicAssetPath ?? _fallbackMusicAsset),
+        volume: 0,
+      );
+      await voice.setReleaseMode(ReleaseMode.stop);
+      await voice.play(
+        _sourceForPath(voiceAssetPath ?? _fallbackVoiceAsset),
         volume: 1,
+      );
+      _episodeVoiceComplete = voice.onPlayerComplete.listen((_) {
+        unawaited(_fadeOutAndStopMusic());
+      });
+      await _fadeMusicTo(
+        _episodeMusicVolume,
+        duration: const Duration(milliseconds: 1100),
       );
     });
   }
 
   Future<void> pauseMorningEpisode() async {
     await _run(() async {
-      await _episode?.pause();
+      await Future.wait([
+        if (_episodeVoice != null) _episodeVoice!.pause(),
+        if (_episodeMusic != null) _episodeMusic!.pause(),
+      ]);
     });
   }
 
   Future<void> resumeMorningEpisode() async {
     await _run(() async {
-      await _episode?.resume();
+      await Future.wait([
+        if (_episodeVoice != null) _episodeVoice!.resume(),
+        if (_episodeMusic != null) _episodeMusic!.resume(),
+      ]);
     });
   }
 
   Future<void> stopMorningEpisode() async {
     await _run(() async {
-      await _episode?.stop();
+      await _stopMorningEpisodeNow(fadeMusic: true);
     });
   }
 
   Future<void> dispose() async {
     await _run(() async {
+      _cancelEpisodeFade();
+      await _episodeVoiceComplete?.cancel();
       await Future.wait([
         if (_alarmLoop != null) _alarmLoop!.dispose(),
         if (_wakeJolt != null) _wakeJolt!.dispose(),
         if (_questSting != null) _questSting!.dispose(),
-        if (_episode != null) _episode!.dispose(),
+        if (_episodeVoice != null) _episodeVoice!.dispose(),
+        if (_episodeMusic != null) _episodeMusic!.dispose(),
       ]);
     });
   }
@@ -137,6 +171,78 @@ class WakeSagaAudio {
   AudioPlayer get _questStingPlayer =>
       _questSting ??= AudioPlayer(playerId: 'wakeSagaQuestSting');
 
-  AudioPlayer get _episodePlayer =>
-      _episode ??= AudioPlayer(playerId: 'wakeSagaEpisode');
+  AudioPlayer get _episodeVoicePlayer =>
+      _episodeVoice ??= AudioPlayer(playerId: 'wakeSagaEpisodeVoice');
+
+  AudioPlayer get _episodeMusicPlayer =>
+      _episodeMusic ??= AudioPlayer(playerId: 'wakeSagaEpisodeMusic');
+
+  Future<void> _stopMorningEpisodeNow({bool fadeMusic = false}) async {
+    _cancelEpisodeFade();
+    await _episodeVoiceComplete?.cancel();
+    _episodeVoiceComplete = null;
+    if (fadeMusic) {
+      await _fadeMusicTo(0, duration: const Duration(milliseconds: 260));
+    }
+    await Future.wait([
+      if (_episodeVoice != null) _episodeVoice!.stop(),
+      if (_episodeMusic != null) _episodeMusic!.stop(),
+    ]);
+    _currentEpisodeMusicVolume = 0;
+  }
+
+  Future<void> _fadeOutAndStopMusic() async {
+    if (_shouldSkipAudio) return;
+    try {
+      await _fadeMusicTo(0, duration: const Duration(milliseconds: 700));
+      await _episodeMusic?.stop();
+    } on MissingPluginException {
+      _disabled = true;
+    } on PlatformException {
+      _disabled = true;
+    }
+  }
+
+  Future<void> _fadeMusicTo(
+    double targetVolume, {
+    required Duration duration,
+  }) async {
+    final player = _episodeMusic;
+    if (player == null) return;
+    final token = ++_episodeFadeToken;
+    final startVolume = _currentEpisodeMusicVolume;
+    const steps = 8;
+    final stepDuration = Duration(
+      milliseconds: duration.inMilliseconds ~/ steps,
+    );
+    for (var step = 1; step <= steps; step++) {
+      if (token != _episodeFadeToken) return;
+      final progress = step / steps;
+      final volume = startVolume + ((targetVolume - startVolume) * progress);
+      _currentEpisodeMusicVolume = volume;
+      await player.setVolume(volume.clamp(0.0, 1.0).toDouble());
+      if (step < steps) await Future<void>.delayed(stepDuration);
+    }
+  }
+
+  void _cancelEpisodeFade() {
+    _episodeFadeToken++;
+  }
+
+  Source _sourceForPath(String path) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return UrlSource(path);
+    }
+    if (path.startsWith('file://')) {
+      return DeviceFileSource(path.substring('file://'.length));
+    }
+    if (path.startsWith('/')) return DeviceFileSource(path);
+    return AssetSource(_assetSourcePath(path));
+  }
+
+  String _assetSourcePath(String path) {
+    const prefix = 'assets/';
+    if (path.startsWith(prefix)) return path.substring(prefix.length);
+    return path;
+  }
 }

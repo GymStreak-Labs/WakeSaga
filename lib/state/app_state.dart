@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../alarm/alarm_models.dart';
 import '../alarm/wake_missions.dart';
+import '../audio/music_bed_catalog.dart';
 
 /// Outcome of a single day (one episode). Episodes are additive — the count
 /// never decrements, knockdowns and fillers are canon chapters, not resets.
@@ -17,6 +18,7 @@ class DayRecord {
     required this.outcome,
     this.wakeTime = '—',
     this.foil,
+    this.musicBedId,
   });
 
   final int episode;
@@ -26,6 +28,7 @@ class DayRecord {
 
   /// Truth-based foil name (e.g. "FIRST LIGHT") if earned, else null.
   final String? foil;
+  final String? musicBedId;
 
   Map<String, Object?> toJson() => {
     'episode': episode,
@@ -33,6 +36,7 @@ class DayRecord {
     'outcome': outcome.name,
     'wakeTime': wakeTime,
     'foil': foil,
+    'musicBedId': musicBedId,
   };
 
   factory DayRecord.fromJson(Map<String, Object?> json) {
@@ -45,6 +49,7 @@ class DayRecord {
       ),
       wakeTime: json['wakeTime'] as String? ?? '—',
       foil: json['foil'] as String?,
+      musicBedId: json['musicBedId'] as String?,
     );
   }
 }
@@ -348,6 +353,7 @@ class AppState extends ChangeNotifier {
   /// Real users start with an empty Saga. Demo/capture harnesses may opt into
   /// this fixture explicitly so the proof/history surface still has rich data.
   final List<DayRecord> log;
+  final List<String> recentMusicBedIds = [];
 
   static final List<DayRecord> _demoLog = [
     const DayRecord(
@@ -454,6 +460,18 @@ class AppState extends ChangeNotifier {
   int get arcNumber => (log.length ~/ arcLength) + 1;
   int get arcDay => (log.length % arcLength) + 1;
 
+  String get activeEpisodeVoiceAssetPath =>
+      activeAlarmPlan?.episodeVoiceAssetPath ??
+      'assets/audio/episode_voice_sample.mp3';
+
+  EpisodeMusicBed get activeEpisodeMusicBed {
+    final activeBedId = activeAlarmPlan?.episodeMusicBedId;
+    if (activeBedId != null && activeBedId.isNotEmpty) {
+      return episodeMusicBedById(activeBedId);
+    }
+    return _selectMusicBedForEpisode(nextEpisode);
+  }
+
   List<DayRecord> get mintedCards =>
       log.where((r) => r.outcome == DayOutcome.cleared).toList();
 
@@ -485,16 +503,20 @@ class AppState extends ChangeNotifier {
   }
 
   void mintEpisode({required String wakeTime, String? foil}) {
+    final episode = nextEpisode;
+    final musicBedId = activeEpisodeMusicBed.id;
     _markActiveAlarmOutcome(AlarmOutcome.clear);
     log.add(
       DayRecord(
-        episode: nextEpisode,
-        title: deriveEpisodeTitle(missionText, nextEpisode),
+        episode: episode,
+        title: deriveEpisodeTitle(missionText, episode),
         outcome: DayOutcome.cleared,
         wakeTime: wakeTime,
         foil: foil,
+        musicBedId: musicBedId,
       ),
     );
+    _rememberMusicBed(musicBedId);
     clearedToday = true;
     notifyListeners();
   }
@@ -527,6 +549,7 @@ class AppState extends ChangeNotifier {
     'scheduledAlarm': scheduledAlarm?.toJson(),
     'alarmScheduleError': alarmScheduleError,
     'expectedFires': expectedFires.map((record) => record.toJson()).toList(),
+    'recentMusicBedIds': recentMusicBedIds,
   };
 
   void restoreFromJson(Map<String, Object?> json) {
@@ -567,6 +590,21 @@ class AppState extends ChangeNotifier {
       log
         ..clear()
         ..addAll(restoredLog);
+    }
+    recentMusicBedIds
+      ..clear()
+      ..addAll(
+        (json['recentMusicBedIds'] as List? ?? const [])
+            .whereType<String>()
+            .take(6),
+      );
+    if (recentMusicBedIds.isEmpty) {
+      recentMusicBedIds.addAll(
+        log.reversed
+            .map((record) => record.musicBedId)
+            .whereType<String>()
+            .take(6),
+      );
     }
 
     final activePlanJson = json['activeAlarmPlan'];
@@ -615,6 +653,7 @@ class AppState extends ChangeNotifier {
 
   void _stageActiveAlarmPlan() {
     final existingId = activeAlarmPlan?.id;
+    final musicBed = _selectMusicBedForEpisode(nextEpisode);
     activeAlarmPlan = AlarmPlan(
       id: existingId ?? 'wake-${DateTime.now().microsecondsSinceEpoch}',
       episode: nextEpisode,
@@ -625,9 +664,10 @@ class AppState extends ChangeNotifier {
       mission: missionText,
       narrator: narrator,
       joltAssetPath: 'assets/audio/wake_jolt_forceful.mp3',
-      episodeVoiceAssetPath: null,
-      episodeMusicAssetPath: 'assets/audio/lyria_morning_episode_bed.mp3',
-      episodeMixAssetPath: 'assets/audio/morning_episode_scored.mp3',
+      episodeVoiceAssetPath: activeEpisodeVoiceAssetPath,
+      episodeMusicBedId: musicBed.id,
+      episodeMusicAssetPath: musicBed.assetPath,
+      episodeMixAssetPath: null,
       fallbackQuest: fallbackQuest,
       createdAt: activeAlarmPlan?.createdAt ?? clock(),
     );
@@ -690,6 +730,36 @@ class AppState extends ChangeNotifier {
       questClearedAt: outcome == AlarmOutcome.clear ? clock() : null,
       outcome: outcome,
     );
+  }
+
+  EpisodeMusicBed _selectMusicBedForEpisode(int episode) {
+    final comeback =
+        log.isNotEmpty &&
+        log.last.outcome == DayOutcome.knockdown &&
+        !clearedToday;
+    return selectEpisodeMusicBed(
+      arc: arc,
+      rivalIntensity: rivalIntensity,
+      narrator: narrator,
+      difficulty: difficulty,
+      quest: resolvedQuest,
+      episode: episode,
+      localDate: clock(),
+      userKey: userName,
+      recentBedIds: recentMusicBedIds,
+      comeback: comeback,
+      milestone: episode % arcLength == 0,
+    );
+  }
+
+  void _rememberMusicBed(String? bedId) {
+    if (bedId == null || bedId.isEmpty) return;
+    recentMusicBedIds
+      ..remove(bedId)
+      ..insert(0, bedId);
+    if (recentMusicBedIds.length > 6) {
+      recentMusicBedIds.removeRange(6, recentMusicBedIds.length);
+    }
   }
 }
 

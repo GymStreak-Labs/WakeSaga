@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../audio/music_bed_catalog.dart';
 import '../audio/wake_saga_audio.dart';
 import '../state/app_state.dart';
 import '../theme/ink_signal.dart';
@@ -29,6 +30,8 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
   static const _lineDuration = Duration(milliseconds: 2400);
 
   late final List<String> _lines;
+  late final EpisodeMusicBed _musicBed;
+  late final String _voiceAssetPath;
   int _current = 0;
   bool _playing = true;
   Timer? _ticker;
@@ -42,16 +45,23 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
         ? 'hold the line until tonight'
         : state.missionText;
     final quest = state.resolvedQuest;
+    _musicBed = state.activeEpisodeMusicBed;
+    _voiceAssetPath = state.activeEpisodeVoiceAssetPath;
     _lines = [
       '${state.userName}. Episode $ep. You actually stood up.',
       '${state.rival} tried to keep the opening scene.',
       'The mission: $mission.',
-      '$quest is cleared. The score comes in now.',
+      '$quest is cleared. ${_musicBed.label} comes in now.',
       '${state.wakeJolt} becomes the first scene.',
       'Go. The episode is live.',
     ];
     _armTicker();
-    unawaited(WakeSagaAudio.instance.playMorningEpisode());
+    unawaited(
+      WakeSagaAudio.instance.playMorningEpisode(
+        voiceAssetPath: _voiceAssetPath,
+        musicAssetPath: _musicBed.assetPath,
+      ),
+    );
   }
 
   void _armTicker() {
@@ -127,7 +137,7 @@ class _EpisodePlayerState extends State<EpisodePlayer> {
                 const SizedBox(height: 14),
                 _NarratorBlock(narrator: state.narrator, playing: _playing),
                 const SizedBox(height: 12),
-                const _ScoreBedStrip(),
+                _ScoreBedStrip(musicBed: _musicBed),
                 const SizedBox(height: 22),
                 // Subtitle list, lower-third style: current line white,
                 // past lines at 35%, future lines barely there.
@@ -303,7 +313,9 @@ class _NarratorBlock extends StatelessWidget {
 }
 
 class _ScoreBedStrip extends StatelessWidget {
-  const _ScoreBedStrip();
+  const _ScoreBedStrip({required this.musicBed});
+
+  final EpisodeMusicBed musicBed;
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +335,7 @@ class _ScoreBedStrip extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Cinematic instrumental begins after proof',
+              '${musicBed.label} · ${musicBed.description}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: InkSignal.ui(

@@ -532,7 +532,7 @@ class _TodayTabState extends State<TodayTab>
 
   Widget _morning(AppState state) {
     final card = state.mintedCards.isEmpty ? null : state.mintedCards.last;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -606,7 +606,7 @@ class _TodayTabState extends State<TodayTab>
             state: state,
             title: "THIS MORNING'S WAKE PATH",
           ),
-          const Spacer(),
+          const SizedBox(height: 28),
           if (card != null)
             Row(
               children: [
