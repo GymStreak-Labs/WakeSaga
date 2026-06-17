@@ -1,3 +1,5 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,6 +23,8 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  final analytics = FirebaseAnalytics.instance;
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -39,6 +43,7 @@ Future<void> main() async {
       store: store,
       alarmEngine: alarmEngine,
       initialAlarmLaunch: initialLaunch,
+      analytics: analytics,
     ),
   );
 }
@@ -50,12 +55,14 @@ class WakeSagaApp extends StatefulWidget {
     this.store,
     this.alarmEngine,
     this.initialAlarmLaunch,
+    this.analytics,
   });
 
   final AppState? initialState;
   final AppStateStore? store;
   final AlarmEngine? alarmEngine;
   final AlarmLaunch? initialAlarmLaunch;
+  final FirebaseAnalytics? analytics;
 
   @override
   State<WakeSagaApp> createState() => _WakeSagaAppState();
@@ -120,6 +127,10 @@ class _WakeSagaAppState extends State<WakeSagaApp> {
           navigatorKey: rootNavigatorKey,
           title: 'WakeSaga',
           debugShowCheckedModeBanner: false,
+          navigatorObservers: [
+            if (widget.analytics != null)
+              FirebaseAnalyticsObserver(analytics: widget.analytics!),
+          ],
           theme: InkSignal.theme(),
           home: const WakeSagaShell(),
         ),

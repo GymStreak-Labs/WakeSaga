@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76039805369",
+    "project_id": "wakesaga-prod",
+    "storage_bucket": "wakesaga-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76039805369:android:7a9838a1d75ecf1a717e68",
+        "android_client_info": {
+          "package_name": "com.gymstreaklabs.wakesaga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWgH8RUNcAy7P9Win3w5_HK6QwcjcC_Gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
