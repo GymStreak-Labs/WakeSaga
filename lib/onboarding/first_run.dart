@@ -54,9 +54,10 @@ class _OnboardingStep {
 
 /// Long Cold Open onboarding.
 ///
-/// This restores a Wayk-length setup cadence, but keeps the newer product
-/// thesis: every answer builds Episode 1, and the final output is an armed
-/// alarm loop rather than a generic motivation profile.
+/// Long-form Cold Open builder.
+///
+/// Every answer builds Episode 1, and the final output is an armed alarm loop
+/// rather than a generic motivation profile.
 class FirstRunFlow extends StatefulWidget {
   const FirstRunFlow({super.key});
 
@@ -78,18 +79,16 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   _StepTransition _activeTransition = _StepTransition.soft;
   bool _isTransitioning = false;
   bool _isFinishing = false;
+  bool _didPrecacheSupportArt = false;
   DateTime _picked = DateTime(2026, 1, 1, 6, 30);
 
   final Map<String, String> _answers = {
     'identity': 'I hit snooze',
     'firstAlarm': 'I negotiate',
-    'backup': '2-3 alarms',
     'cost': 'Late start',
     'thief': 'Phone scroll',
     'gain': 'Study block',
-    'nightFeeling': 'Hopeful',
     'wakeFeeling': 'Foggy',
-    'humanAfter': '15 minutes',
     'arc': 'Study Arc',
     'stake': 'Grades',
     'rival': 'Phone vortex',
@@ -102,7 +101,6 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     'fallbackQuest': 'Shake',
     'repeat': 'Weekdays',
     'jolt': 'Power shout',
-    'behavior': 'Filler costs a chapter',
     'permission': 'I understand',
     'commitment': 'Sign Episode 1',
   };
@@ -157,19 +155,6 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
-      field: 'backup',
-      kicker: 'ALARM STACK',
-      title: 'How chaotic is your alarm stack?',
-      body: 'This tells WakeSaga how much structure the Cold Open needs.',
-      choices: [
-        _Choice('1 alarm'),
-        _Choice('2-3 alarms'),
-        _Choice('4+ alarms'),
-        _Choice('I do not trust alarms'),
-      ],
-    ),
-    _OnboardingStep(
-      kind: _StepKind.choice,
       field: 'cost',
       kicker: 'DAMAGE REPORT',
       title: 'What does the lost morning usually cost?',
@@ -213,20 +198,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'PAYOFF',
       title: 'Rival detected.',
       body:
-          'A normal alarm asks your tired brain to decide. WakeSaga moves your body first, then rewards you with the episode.',
-    ),
-    _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'nightFeeling',
-      kicker: 'NIGHT CHECK',
-      title: 'At night, setting an alarm feels...',
-      body: 'The app needs to meet the person you are before sleep too.',
-      choices: [
-        _Choice('Hopeful'),
-        _Choice('Anxious'),
-        _Choice('Fake confident'),
-        _Choice('Already defeated'),
-      ],
+          'Most alarms ask a half-asleep brain to negotiate. WakeSaga gives your body one clear move, then rewards you with the episode.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
@@ -242,19 +214,6 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       ],
     ),
     _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'humanAfter',
-      kicker: 'BOOT TIME',
-      title: 'How long until you feel human?',
-      body: 'The opening sequence needs to survive this fog.',
-      choices: [
-        _Choice('Instantly'),
-        _Choice('5 minutes'),
-        _Choice('15 minutes'),
-        _Choice('Half the morning'),
-      ],
-    ),
-    _OnboardingStep(
       kind: _StepKind.education,
       kicker: 'SLEEP INERTIA',
       title: 'The villain is not weakness.',
@@ -265,15 +224,16 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kind: _StepKind.education,
       kicker: 'OLD LOOP',
       title: 'Alarm. Snooze. Scroll. Panic.',
-      body: 'That loop is familiar because it gives you a tiny escape first.',
+      body:
+          'That loop feels easy because the first action is escape. By the time you decide, the morning is already behind.',
     ),
     _OnboardingStep(
       kind: _StepKind.education,
       entryTransition: _StepTransition.crimson,
       kicker: 'SAGA LOOP',
-      title: 'Alarm. Wake Quest. Title Card. Episode. Wake Card.',
+      title: 'Alarm. Wake Quest. Episode.',
       body:
-          'WakeSaga gives you a physical win first, then turns the morning into a scene worth continuing.',
+          'WakeSaga gives you a physical win first. Then the title card slams, the scored Morning Episode plays, and the day has started.',
     ),
     _OnboardingStep(
       kind: _StepKind.education,
@@ -310,7 +270,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       field: 'stake',
       kicker: 'STAKES',
       title: 'What kind of progress should Episode 1 protect?',
-      body: 'This keeps the app from sounding generic.',
+      body: 'This keeps Episode 1 pointed at something real.',
       choices: [
         _Choice('Grades'),
         _Choice('Body'),
@@ -343,7 +303,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       field: 'name',
       kicker: 'PROTAGONIST',
       title: 'What should the narrator call you?',
-      body: 'This makes the Cold Open feel personal instead of generic.',
+      body: 'This makes the Cold Open feel like it was made for you.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
@@ -384,7 +344,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       kicker: 'WAKE QUEST',
       title: 'The alarm turns off only after Wake Quest.',
       body:
-          'This is the Wayk-inspired mechanic: one tiny proof mission that silences the alarm, then unlocks the title card and episode.',
+          'One tiny real-world mission silences the alarm. Clearing it unlocks the title card and the scored Morning Episode.',
     ),
     _OnboardingStep(
       kind: _StepKind.choice,
@@ -402,53 +362,6 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       ],
     ),
     _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'questPlace',
-      kicker: 'QUEST STAGE',
-      title: 'Where should the quest pull you?',
-      body: 'Great quests move you away from the bed.',
-      choices: [
-        _Choice('Across the room'),
-        _Choice('Kitchen'),
-        _Choice('Desk'),
-        _Choice('Outside light'),
-      ],
-    ),
-    _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'proof',
-      kicker: 'PROOF',
-      title: 'What counts as proof?',
-      body: 'The app should ask for proof your body has started.',
-      choices: [
-        _Choice('Movement proof'),
-        _Choice('Camera proof'),
-        _Choice('Object proof'),
-        _Choice('Voice proof'),
-      ],
-    ),
-    _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'difficulty',
-      kicker: 'DIFFICULTY',
-      title: 'How strict should Episode 1 be?',
-      body: 'Harder modes can come later. Day one should be winnable.',
-      choices: [_Choice('Gentle'), _Choice('Normal'), _Choice('Hard')],
-    ),
-    _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'fallbackQuest',
-      kicker: 'FALLBACK',
-      title: 'If verification fails, what is the fallback quest?',
-      body: 'The alarm should stay strict without becoming hostile.',
-      choices: [
-        _Choice('Shake'),
-        _Choice('Tap pattern'),
-        _Choice('Spoken vow'),
-        _Choice('Emergency end'),
-      ],
-    ),
-    _OnboardingStep(
       kind: _StepKind.time,
       kicker: 'AIR TIME',
       title: 'What time does your story start?',
@@ -459,8 +372,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       field: 'repeat',
       kicker: 'RHYTHM',
       title: 'When should the saga run?',
-      body:
-          'The prototype stores the main alarm. Repeat scheduling comes with the real alarm engine.',
+      body: 'Choose the rhythm you want WakeSaga to protect first.',
       choices: [
         _Choice('Weekdays'),
         _Choice('Every day'),
@@ -483,18 +395,6 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
       ],
     ),
     _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'behavior',
-      kicker: 'ESCAPE RULE',
-      title: 'If you snooze, what happens?',
-      body: 'No shame. Just canon.',
-      choices: [
-        _Choice('Filler costs a chapter'),
-        _Choice('Fallback quest first'),
-        _Choice('Recovery mode if sick'),
-      ],
-    ),
-    _OnboardingStep(
       kind: _StepKind.education,
       kicker: 'NO TRAPS',
       title: 'The alarm never traps you.',
@@ -509,20 +409,11 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
           'Episode count only goes up. A bad morning creates a comeback chapter instead of breaking a streak.',
     ),
     _OnboardingStep(
-      kind: _StepKind.choice,
-      field: 'permission',
-      kicker: 'PERMISSIONS',
-      title: 'WakeSaga needs permission to actually wake you.',
-      body:
-          'Production build: notifications, alarm access, motion, and camera only when the chosen quest needs them.',
-      choices: [_Choice('I understand'), _Choice('Remind me why')],
-    ),
-    _OnboardingStep(
       kind: _StepKind.education,
       kicker: 'PERMISSION PRIMER',
-      title: 'Ask only when the feature needs it.',
+      title: 'WakeSaga asks only when the feature needs it.',
       body:
-          'Notifications arm the alarm. Camera or motion are requested only for quests that use them.',
+          'Notifications arm the alarm. Motion or camera access is only used for Wake Quests that need movement or photo proof.',
     ),
     _OnboardingStep(
       kind: _StepKind.education,
@@ -580,9 +471,33 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didPrecacheSupportArt) return;
+    _didPrecacheSupportArt = true;
+    for (final asset in _supportArtAssets) {
+      precacheImage(AssetImage(asset), context);
+    }
+  }
+
   _OnboardingStep get _step => _steps[_index];
 
   double get _progress => (_index + 1) / _steps.length;
+
+  static const _supportArtAssets = [
+    'assets/onboarding/cold-open-anime-character.png',
+    'assets/onboarding/support/body_first.png',
+    'assets/onboarding/support/sleep_inertia.png',
+    'assets/onboarding/support/old_loop.png',
+    'assets/onboarding/support/saga_loop.png',
+    'assets/onboarding/support/title_reward.png',
+    'assets/onboarding/support/wake_quest_rule.png',
+    'assets/onboarding/support/no_traps.png',
+    'assets/onboarding/support/knockdown_canon.png',
+    'assets/onboarding/support/permission_trust.png',
+    'assets/onboarding/support/rendering_episode.png',
+  ];
 
   void _next() {
     if (_isTransitioning || _isFinishing) return;
@@ -1379,6 +1294,21 @@ class _EducationStep extends StatelessWidget {
 
   final _OnboardingStep step;
 
+  String? get _asset => switch (step.kicker) {
+    'PAYOFF' => 'assets/onboarding/support/body_first.png',
+    'SLEEP INERTIA' => 'assets/onboarding/support/sleep_inertia.png',
+    'OLD LOOP' => 'assets/onboarding/support/old_loop.png',
+    'SAGA LOOP' => 'assets/onboarding/support/saga_loop.png',
+    'ONE RULE' => 'assets/onboarding/support/body_first.png',
+    'TITLE CARD' => 'assets/onboarding/support/title_reward.png',
+    'WAKE QUEST' => 'assets/onboarding/support/wake_quest_rule.png',
+    'NO TRAPS' => 'assets/onboarding/support/no_traps.png',
+    'KNOCKDOWNS' => 'assets/onboarding/support/knockdown_canon.png',
+    'PERMISSION PRIMER' => 'assets/onboarding/support/permission_trust.png',
+    'REVIEW' => 'assets/onboarding/support/rendering_episode.png',
+    _ => null,
+  };
+
   String get _label => switch (step.kicker) {
     'PAYOFF' => 'RIVAL FILE',
     'SLEEP INERTIA' => 'BODY NOTE',
@@ -1397,11 +1327,21 @@ class _EducationStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final asset = _asset;
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         _Header(step: step, showBody: false),
-        const SizedBox(height: 36),
+        if (asset != null) ...[
+          const SizedBox(height: 16),
+          _TimedEntrance(
+            delay: const Duration(milliseconds: 70),
+            offset: const Offset(0, 0.04),
+            child: _SupportVisual(asset: asset, kicker: step.kicker),
+          ),
+          const SizedBox(height: 16),
+        ] else
+          const SizedBox(height: 36),
         _TimedEntrance(
           delay: const Duration(milliseconds: 90),
           offset: const Offset(0, 0.05),
@@ -1434,6 +1374,71 @@ class _EducationStep extends StatelessWidget {
         ),
         const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _SupportVisual extends StatelessWidget {
+  const _SupportVisual({required this.asset, required this.kicker});
+
+  final String asset;
+  final String kicker;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final tallAsset = asset.contains('sleep_inertia');
+    final visualHeight = tallAsset
+        ? (size.height * 0.22).clamp(150.0, 188.0)
+        : (size.height * 0.17).clamp(122.0, 158.0);
+    return Container(
+      height: visualHeight,
+      width: double.infinity,
+      decoration: InkSignal.panel(color: InkSignal.paper),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const CustomPaint(
+            painter: ScreentonePainter(color: InkSignal.base, opacity: 0.035),
+          ),
+          Positioned(
+            left: tallAsset ? -24 : -54,
+            right: tallAsset ? -24 : -54,
+            top: tallAsset ? -44 : -20,
+            bottom: tallAsset ? -56 : -20,
+            child: Transform.scale(
+              scale: tallAsset ? 1.0 : 1.22,
+              child: Image.asset(
+                asset,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            top: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: InkSignal.base.withValues(alpha: 0.82),
+                border: Border.all(
+                  color: InkSignal.base.withValues(alpha: 0.18),
+                ),
+                borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+              ),
+              child: Text(
+                kicker,
+                style: InkSignal.mono(
+                  9,
+                  color: InkSignal.paper.withValues(alpha: 0.62),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1665,7 +1670,12 @@ class _RenderStep extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: [
         _Header(step: step),
-        const SizedBox(height: 28),
+        const SizedBox(height: 16),
+        const _SupportVisual(
+          asset: 'assets/onboarding/support/rendering_episode.png',
+          kicker: 'EPISODE FACTORY',
+        ),
+        const SizedBox(height: 18),
         for (final item in items)
           _TimedEntrance(
             delay: Duration(milliseconds: 70 * items.indexOf(item)),
@@ -1727,6 +1737,11 @@ class _RevealStep extends StatelessWidget {
       children: [
         _Header(step: step),
         const SizedBox(height: 18),
+        const _SupportVisual(
+          asset: 'assets/onboarding/support/title_reward.png',
+          kicker: 'OPENING SCENE',
+        ),
+        const SizedBox(height: 16),
         _TimedEntrance(
           delay: const Duration(milliseconds: 100),
           offset: const Offset(0, 0.06),
