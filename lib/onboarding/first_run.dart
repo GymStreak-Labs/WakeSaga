@@ -497,7 +497,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
 
   static const _supportArtAssets = [
     'assets/onboarding/unique/rival_detected_hero.png',
-    'assets/onboarding/prototype_cold_open_hero.png',
+    'assets/onboarding/cold_open_hero_framed.png',
     'assets/onboarding/support/body_first.png',
     'assets/onboarding/support/sleep_inertia.png',
     'assets/onboarding/support/old_loop.png',
@@ -1051,7 +1051,7 @@ class _StepBody extends StatelessWidget {
 class _ColdOpenStep extends StatelessWidget {
   const _ColdOpenStep({required this.step});
 
-  static const heroAsset = 'assets/onboarding/prototype_cold_open_hero.png';
+  static const heroAsset = 'assets/onboarding/cold_open_hero_framed.png';
 
   final _OnboardingStep step;
 
