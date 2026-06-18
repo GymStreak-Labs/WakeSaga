@@ -1,0 +1,22 @@
+[
+  {
+    "id": "07-fullbleed-crimson-clock",
+    "label": "Full-Bleed Crimson Clock",
+    "prompt": "Create final source art for a premium iOS app icon for WakeSaga, an anime-inspired alarm app.\nImportant: draw a full-bleed square icon source, NOT a rounded icon mockup. Do not draw white margins, do not draw a rounded rectangle frame, do not show the icon sitting on a white background.\nSymbol: one bold alarm-clock silhouette fused with a dawn sun halo, crossed by one crimson anime wake slash.\nStyle: dark OLED ink navy fills the entire square canvas edge to edge, warm paper-white/gold clock shape, one crimson accent only, subtle manga screentone background, polished cel-shaded icon depth.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no face, no scene, no watermark, one centered mark, legible at 44 px, content inside iOS safe area."
+  },
+  {
+    "id": "08-fullbleed-title-alarm",
+    "label": "Full-Bleed Title Alarm",
+    "prompt": "Create final source art for a premium iOS app icon for WakeSaga, where waking up unlocks an anime Morning Episode.\nImportant: full-bleed square source art, not a rounded app icon preview, no white border or white outside corners.\nSymbol: minimal alarm clock center mark inside a sharp manga title-card burst, with one tiny crimson lightning hand inside the clock.\nStyle: dark ink navy background edge to edge, warm paper burst, restrained crimson center signal, high contrast, simple silhouette, premium native app icon polish.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no complex scene, no watermark, no border, readable at 44 px."
+  },
+  {
+    "id": "09-fullbleed-wake-quest",
+    "label": "Full-Bleed Wake Quest",
+    "prompt": "Create final source art for a premium iOS app icon for WakeSaga, an alarm that turns off after a real Wake Quest.\nImportant: full-bleed square source art, not a rounded icon mockup, no white margin, no outer frame.\nSymbol: an alarm clock silhouette with a single simplified upward shoe-step mark in the center, like getting out of bed silences the alarm. Make it a shoe/footstep proof mark, not an animal paw.\nStyle: entire square is dark ink navy, central warm paper icon, crimson glow behind the step, tiny halftone texture, anime utility icon polish.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no scene, no watermark, one clear centered silhouette, legible at 44 px."
+  },
+  {
+    "id": "10-fullbleed-first-light",
+    "label": "Full-Bleed First Light",
+    "prompt": "Create final source art for a premium iOS app icon for WakeSaga, an alarm app where clearing the Wake Quest mints a Wake Card.\nImportant: full-bleed square source art, not a rounded icon mockup, no white outside corners, no decorative border.\nSymbol: one simple alarm-clock sun medallion rising from darkness, with a single small ember-gold foil glint and one crimson signal notch.\nStyle: dark ink navy background fills entire square, warm paper medallion, restrained gold glint only, one crimson notch, high contrast, refined cel-shaded depth, subtle screentone.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no face, no detailed scene, no watermark, centered, readable at 44 px."
+  }
+]

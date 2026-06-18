@@ -1,0 +1,32 @@
+[
+  {
+    "id": "01-crimson-alarm-sun",
+    "label": "Crimson Alarm Sun",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/01-crimson-alarm-sun.jpg"
+  },
+  {
+    "id": "02-wake-slash-bell",
+    "label": "Wake Slash Bell",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/02-wake-slash-bell.jpg"
+  },
+  {
+    "id": "03-title-card-burst",
+    "label": "Title Card Burst",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/03-title-card-burst.jpg"
+  },
+  {
+    "id": "04-quest-step-alarm",
+    "label": "Quest Step Alarm",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/04-quest-step-alarm.jpg"
+  },
+  {
+    "id": "05-episode-volume-alarm",
+    "label": "Episode Volume Alarm",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/05-episode-volume-alarm.jpg"
+  },
+  {
+    "id": "06-first-light-foil",
+    "label": "First Light Foil",
+    "path": "docs/design-explorations/app-icon-nano-banana/generated/06-first-light-foil.jpg"
+  }
+]

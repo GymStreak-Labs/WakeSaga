@@ -1,0 +1,32 @@
+[
+  {
+    "id": "01-crimson-alarm-sun",
+    "label": "Crimson Alarm Sun",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an anime-inspired alarm app where the alarm is the cold open and completing a Wake Quest unlocks the Morning Episode.\nSymbol: one bold alarm clock silhouette merged with a rising sun disc behind it, a single crimson signal slash cutting through the center.\nStyle: INK-AND-SIGNAL design language, dark OLED ink navy background, warm paper highlights, one crimson accent, subtle manga screentone texture, high contrast, premium app icon polish, simple flat-cel dimensional shading.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no scene, no tiny details, no watermark, no border, one clear centered silhouette, legible at 44 px, critical content inside iOS safe area."
+  },
+  {
+    "id": "02-wake-slash-bell",
+    "label": "Wake Slash Bell",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an anime alarm app that forces a real Wake Quest before the Morning Episode unlocks.\nSymbol: one oversized alarm bell / clock mark with a sharp crimson anime slash forming the wake-up signal; the slash should feel like an episode cut, not a logo letter.\nStyle: dark ink navy full-bleed background, warm off-white clock/bell shape, crimson slash as the only accent, subtle cel-shaded depth, restrained manga energy, bold and readable.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no face, no scene, no tiny details, no watermark, no decorative border, one centered mark legible at 44 px."
+  },
+  {
+    "id": "03-title-card-burst",
+    "label": "Title Card Burst",
+    "prompt": "Create a premium iOS app icon for WakeSaga, a morning alarm app where every wake-up becomes an anime episode.\nSymbol: one simple manga title-card burst shape behind a minimal alarm-clock center mark, like a dramatic episode reveal condensed into a single icon.\nStyle: ink navy background, warm paper burst, one crimson core signal, tiny amount of screentone texture, angular shonen energy, polished native app icon depth.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no face, no complex scene, no watermark, one clear silhouette, legible at 44 px."
+  },
+  {
+    "id": "04-quest-step-alarm",
+    "label": "Quest Step Alarm",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an alarm that turns off only after a small real-world Wake Quest.\nSymbol: one bold alarm-clock mark with a simple upward footstep/check-shaped proof mark inside it, representing get up to turn it off. The mark must not look like a checkmark app or running app; keep alarm first.\nStyle: dark OLED ink navy, warm paper-white central shape, one crimson activation glow, premium flat-cel anime polish, small screentone texture only in background.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no scene, no tiny details, no watermark, centered, legible at 44 px."
+  },
+  {
+    "id": "05-episode-volume-alarm",
+    "label": "Episode Volume Alarm",
+    "prompt": "Create a premium iOS app icon for WakeSaga, where each cleared alarm becomes a canon episode in the user's saga.\nSymbol: one compact manga volume / episode card shape with a simple alarm-clock circle embedded in the cover, using a diagonal crimson bookmark slash. It should read as alarm + saga, not a book app.\nStyle: ink navy background, warm paper card, crimson bookmark slash, tiny gold edge only as foil highlight, premium app icon material, simple silhouette.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no detailed scene, no watermark, gold used very sparingly, legible at 44 px."
+  },
+  {
+    "id": "06-first-light-foil",
+    "label": "First Light Foil",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an anime-inspired morning alarm where clearing the Wake Quest mints a Wake Card.\nSymbol: one alarm-clock sun medallion with a small foil corner flare, like first light after waking up. Keep it simple and iconic, not a collectible card illustration.\nStyle: dark ink navy full-bleed, warm paper medallion, one crimson signal mark, tiny ember-gold foil glint only at one corner, refined cel-shaded depth, premium iOS icon polish.\nConstraints: square 1024x1024, opaque full-bleed background, no text, no letters, no numbers, no UI, no phone, no character, no face, no scene, no tiny details, no watermark, centered, readable at 44 px."
+  }
+]
