@@ -1,0 +1,38 @@
+[
+  {
+    "id": "01-angry-vein-clock",
+    "label": "Angry Vein Clock",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/01-angry-vein-clock.png",
+    "seed": null
+  },
+  {
+    "id": "02-furious-bell-mark",
+    "label": "Furious Bell Mark",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/02-furious-bell-mark.png",
+    "seed": null
+  },
+  {
+    "id": "03-shonen-alarm-burst",
+    "label": "Shonen Alarm Burst",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/03-shonen-alarm-burst.png",
+    "seed": null
+  },
+  {
+    "id": "04-angry-clock-medallion",
+    "label": "Angry Clock Medallion",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/04-angry-clock-medallion.png",
+    "seed": null
+  },
+  {
+    "id": "05-signal-rage-alarm",
+    "label": "Signal Rage Alarm",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/05-signal-rage-alarm.png",
+    "seed": null
+  },
+  {
+    "id": "06-slam-cut-alarm",
+    "label": "Slam Cut Alarm",
+    "path": "docs/design-explorations/app-icon-locked-angry-alarm/generated/06-slam-cut-alarm.png",
+    "seed": null
+  }
+]

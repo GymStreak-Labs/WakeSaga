@@ -1,0 +1,74 @@
+[
+  {
+    "id": "01-determined-eye-alarm-red",
+    "family": "determined-face",
+    "label": "Determined Eye Alarm",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an anime alarm app that makes waking up feel like the cold open of a shonen episode.\nSymbol: extreme close-up of one determined anime eye and brow filling almost the whole icon, shaped subtly like an alarm clock face with two small bell-like hair silhouettes at the top. The expression must read determined, focused, ready to wake up, not cute and not angry villain.\nStyle: bold flat-cel anime, dark ink-navy background, warm skin/paper highlights, one crimson wake signal accent reflected in the eye, strong center mass, premium app icon polish.\nComposition: face crop is massive and iconic, no full head, no body, no scene, no detailed hair strands; reads as a single graphic mark at 44px.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no watermark, no border, no realistic celebrity likeness, no tiny features, no horror."
+  },
+  {
+    "id": "02-protagonist-stare-sun-core",
+    "family": "determined-face",
+    "label": "Protagonist Stare",
+    "prompt": "Create a premium iOS app icon for WakeSaga.\nSymbol: super close-up determined anime protagonist face, only eyes, eyebrows, bridge of nose, and a small alarm-clock sun core between the brows. The crop should feel like the moment before the character gets up and takes action.\nStyle: anime key-art simplified for an app icon, high contrast ink black and warm ivory, crimson alarm glow, subtle gold dawn rim light, sculptural cel shading.\nComposition: huge face crop fills the safe area; one bold silhouette; no background scene; no full face outline if it hurts small-size readability.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no watermark, no border, no tiny details, no blood, no weapon, no copyrighted character."
+  },
+  {
+    "id": "03-manga-brow-clock",
+    "family": "determined-face",
+    "label": "Manga Brow Clock",
+    "prompt": "Create a premium app icon for WakeSaga, an anime Wake Quest alarm.\nSymbol: a stylized determined anime brow and eye pair forming the top half of an alarm clock; the circular clock face is implied by the face crop, with two abstract alarm bells as hair spikes. Make it iconic and readable, not a portrait.\nStyle: graphic manga poster mark, dark OLED ink background, bone-white face planes, one crimson wake slash, tiny screentone texture only in shadows, crisp edges.\nComposition: centered, massive close-up, simple shapes, strong silhouette from far away.\nConstraints: square 1024x1024, opaque, no text, no letters, no numbers, no UI, no phone, no scene, no full character, no tiny eyelashes, no watermark."
+  },
+  {
+    "id": "04-rising-hero-eye",
+    "family": "determined-face",
+    "label": "Rising Hero Eye",
+    "prompt": "Create a premium iOS icon for WakeSaga.\nSymbol: one huge determined anime eye with a rising dawn reflected inside it; the iris has a simple alarm-clock ring shape. The icon should communicate wake up, focus, and main-character resolve.\nStyle: clean anime cel-shading, ink-navy background, warm dawn amber, crimson accent ring, polished glossy app icon depth, minimal detail.\nComposition: eye fills most of frame; abstract enough to read at small size; no extra face/scene clutter.\nConstraints: 1024x1024 square, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no watermark, no border, no small scenic details, no creepy/horror eye."
+  },
+  {
+    "id": "05-jolt-face-cut",
+    "family": "determined-face",
+    "label": "Jolt Face Cut",
+    "prompt": "Create a premium WakeSaga app icon.\nSymbol: diagonal anime face cut-in: determined eye, brow, cheek shadow, and crimson wake jolt slash. It should feel like an anime title-card cut-in but simplified into one bold app icon symbol.\nStyle: high contrast ink-and-crimson, warm paper skin highlights, cel-shaded planes, no gradients except subtle app-icon depth, energetic but uncluttered.\nComposition: diagonal close-up face crop fills icon; one large eye as anchor; no full character; no scene.\nConstraints: square 1024x1024, opaque, no text/letters/numbers, no UI, no phone, no watermark, no border, no tiny marks, readable at 44px."
+  },
+  {
+    "id": "06-silhouette-face-bell",
+    "family": "determined-face",
+    "label": "Face Bell Silhouette",
+    "prompt": "Create a premium iOS app icon for WakeSaga.\nSymbol: minimal determined anime face silhouette fused with an alarm clock: two sharp brows as alarm bells, circular face/clock silhouette, one crimson eye-like wake signal. It should be more emblem than character portrait.\nStyle: simple bold vector-like anime emblem with premium 3D lighting, ink-black background, ivory silhouette, crimson signal accent, strong small-size readability.\nComposition: centered emblem, fills 80 percent of frame, no tiny facial detail.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no scene, no watermark, no border, no copyrighted character."
+  },
+  {
+    "id": "07-dawn-alarm-disc",
+    "family": "dawn",
+    "label": "Dawn Alarm Disc",
+    "prompt": "Create a premium iOS app icon for WakeSaga.\nSymbol: one giant rising dawn sun disc merged with a simple alarm clock silhouette; the two bells are suggested by sunrise arcs, not tiny parts.\nStyle: anime opening sunrise, bold graphic icon, dark ink navy lower half, warm gold-orange sun, single crimson wake slash, clean cel-shaded depth.\nComposition: very simple centered symbol, huge shapes, no landscape detail; readable from far away.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no scene, no tiny horizon details, no watermark, no border."
+  },
+  {
+    "id": "08-first-light-bell",
+    "family": "dawn",
+    "label": "First Light Bell",
+    "prompt": "Create a premium app icon for WakeSaga.\nSymbol: abstract alarm bell silhouette made from a sunrise: a bright dawn semicircle, two bell arcs, and one crimson alarm signal at the center. It should read as morning alarm instantly.\nStyle: clean anime-inspired lighting, ink-black background, golden dawn glow, ivory highlights, one crimson accent, premium icon polish.\nComposition: single large silhouette, minimal, no characters, no small scene elements.\nConstraints: 1024x1024 square, opaque, no text, no letters, no numbers, no UI, no phone, no watermark, no border, legible at 44px."
+  },
+  {
+    "id": "09-sunrise-title-card",
+    "family": "dawn",
+    "label": "Sunrise Title Card",
+    "prompt": "Create a premium iOS icon for WakeSaga, where the Morning Episode unlocks after the alarm.\nSymbol: a giant anime title-card sunrise burst behind a minimal alarm clock center mark; the burst should be broad and simple, not detailed rays.\nStyle: dark ink navy, warm golden sunrise, crimson center pulse, manga title-card energy, polished app icon material.\nComposition: centered bold mark, safe-area friendly, no thin lines.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no face, no scene, no tiny details, no watermark."
+  },
+  {
+    "id": "10-dawn-signal-orb",
+    "family": "dawn",
+    "label": "Dawn Signal Orb",
+    "prompt": "Create a premium app icon for WakeSaga.\nSymbol: a simple dawn orb with an alarm-clock ring embedded inside, emitting one bold crimson wake signal. It should feel like sunlight breaking through at 6:30am.\nStyle: anime cinematic morning light, minimal geometric shapes, dark OLED background, warm sunrise orb, crimson accent, subtle glossy depth.\nComposition: one centered orb/clock mark, no scenery, no character, no text.\nConstraints: square 1024x1024, opaque, no letters/numbers/text, no UI, no phone, no detailed landscape, no watermark, visible from far away."
+  },
+  {
+    "id": "11-horizon-alarm-cut",
+    "family": "dawn",
+    "label": "Horizon Alarm Cut",
+    "prompt": "Create a premium iOS app icon for WakeSaga.\nSymbol: stylized horizon line and rising sun forming the face of an alarm clock, cut by a diagonal crimson anime slash. Keep it as one simple abstract morning-alarm mark.\nStyle: ink-and-signal palette, dark navy, warm gold sunrise, crimson slash, cel-shaded graphic polish, no detailed landscape.\nComposition: huge sun/alarm shape fills the frame; bold horizon cut; reads at 44px.\nConstraints: square 1024x1024, opaque full-bleed, no text, no letters, no numbers, no UI, no phone, no characters, no watermark, no border."
+  },
+  {
+    "id": "12-wake-sun-medallion",
+    "family": "dawn",
+    "label": "Wake Sun Medallion",
+    "prompt": "Create a premium app icon for WakeSaga.\nSymbol: large sunrise medallion with two alarm bells and a tiny crimson center pulse; abstract anime dawn energy, not a scenic sunrise.\nStyle: dark smoky ink background, gold-orange sun, ivory highlights, one crimson pulse, polished 3D/cel hybrid, strong contrast.\nComposition: centered medallion, large and iconic, no thin details, no text.\nConstraints: 1024x1024 square, opaque full-bleed, no text/letters/numbers, no UI, no phone, no face, no scene, no watermark, no border, legible at 44px."
+  }
+]
