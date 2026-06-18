@@ -1059,7 +1059,7 @@ class _ColdOpenStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final heroHeight = (constraints.maxHeight * 0.30).clamp(168.0, 218.0);
+        final heroHeight = (constraints.maxHeight * 0.36).clamp(224.0, 286.0);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
