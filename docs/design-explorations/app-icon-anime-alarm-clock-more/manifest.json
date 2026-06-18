@@ -1,0 +1,122 @@
+[
+  {
+    "id": "01-shonen-rage-clock",
+    "label": "Shonen Rage Clock",
+    "prompt": "Create a premium iOS app icon for WakeSaga, an anime alarm app. Symbol: one oversized anime-style alarm clock with an angry determined expression formed by bold brows and a crimson center pulse, twin bells large and iconic. Style: shonen anime cel-shading, dark ink navy background, warm ivory clock body, one crimson wake accent, dramatic speed-line energy kept simple. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/01-shonen-rage-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "02-main-character-alarm",
+    "label": "Main Character Alarm",
+    "prompt": "Create a premium iOS app icon for WakeSaga. Symbol: a heroic alarm clock like a main-character emblem, tilted slightly forward as if charging awake, with bold anime brow marks and glowing crimson alarm core. Style: flat-cel anime with premium app icon depth, ink-black background, ivory/silver clock, crimson signal slash. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/02-main-character-alarm.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "03-manga-impact-clock",
+    "label": "Manga Impact Clock",
+    "prompt": "Create a premium app icon for WakeSaga. Symbol: one simple alarm clock at the center of a manga impact burst, but the clock must dominate the frame. The burst should be broad graphic shapes, not many thin lines. Style: black ink, warm paper-white clock, crimson impact core, anime title-card energy. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/03-manga-impact-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "04-angry-bell-clock",
+    "label": "Angry Bell Clock",
+    "prompt": "Create a premium iOS app icon. Symbol: close-up alarm clock with huge twin bells and a stylized anime anger mark integrated into the clock face, like the alarm is shouting wake up. Style: sculptural cel-shaded clock, dark smoky background, silver/ivory highlights, crimson alarm glow, extremely readable silhouette. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/04-angry-bell-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "05-crimson-wake-clock",
+    "label": "Crimson Wake Clock",
+    "prompt": "Create a premium WakeSaga app icon. Symbol: a clean alarm clock silhouette cut by one bold crimson diagonal wake slash; the slash creates an anime action feeling without hiding the clock. Style: dark OLED ink navy, warm ivory clock, crimson as only accent, simple app-store-ready mark. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/05-crimson-wake-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "06-title-slam-clock",
+    "label": "Title Slam Clock",
+    "prompt": "Create a premium iOS app icon for an anime alarm app. Symbol: an alarm clock slamming into frame like an anime title card, with heavy shadow under the bells and a crimson center flare. Style: graphic cel-shading, high contrast, simple shapes, dark background, polished iOS icon feel. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/06-title-slam-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "07-electric-jolt-clock",
+    "label": "Electric Jolt Clock",
+    "prompt": "Create a premium app icon for WakeSaga. Symbol: alarm clock with two simple anime electric jolt arcs ringing from the bells, crimson core and ivory body. Keep the arcs thick and few, no fine lightning clutter. Style: anime energy, dark ink background, strong silhouette, glossy cel-shaded depth. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/07-electric-jolt-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "08-determined-clock-face",
+    "label": "Determined Clock Face",
+    "prompt": "Create a premium iOS icon. Symbol: alarm clock face transformed into a determined anime expression: thick brow shapes where hands would be, a crimson wake pupil/core at center, bells on top. It must read as alarm clock first, expression second. Style: bold icon emblem, ink navy, ivory, crimson, subtle gold rim light. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/08-determined-clock-face.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "09-red-core-bell-clock",
+    "label": "Red Core Bell Clock",
+    "prompt": "Create a premium WakeSaga app icon. Symbol: simple rounded alarm clock with huge bells and one glowing red core in the center, like an anime reactor/wake signal. No clock numbers. Style: clean 3D cel-shaded anime object, black/navy background, ivory/silver metal, crimson glow. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/09-red-core-bell-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "10-ink-stamp-alarm",
+    "label": "Ink Stamp Alarm",
+    "prompt": "Create a premium iOS app icon. Symbol: alarm clock rendered like a bold manga ink stamp, chunky black outline, ivory fill, crimson wake mark, slightly imperfect anime print texture. Keep it simple and centered, not a scene. Style: graphic manga emblem with app icon polish. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/10-ink-stamp-alarm.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "11-episode-alarm-medallion",
+    "label": "Episode Alarm Medallion",
+    "prompt": "Create a premium app icon for WakeSaga. Symbol: alarm clock as a circular anime episode medallion: big bells, simple circular body, crimson signal at center, tiny gold rim used sparingly. It should feel like a collectible but still read as an alarm clock. Style: dark ink background, cel-shaded metallic/paper hybrid, iconic at small size. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/11-episode-alarm-medallion.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  },
+  {
+    "id": "12-hard-wake-clock",
+    "label": "Hard Wake Clock",
+    "prompt": "Create a premium iOS app icon. Symbol: aggressive anime-style alarm clock with bold horn-like bells, thick eyebrows, crimson alarm core, and two broad shockwave arcs. It should feel forceful and urgent but not scary. Style: WakeSaga ink-and-signal palette, dark background, ivory clock, crimson accent, high contrast. App icon requirements: square 1024x1024, opaque full-bleed background, single large centered alarm-clock subject, high contrast, critical content inside iOS safe area, readable at 44px. No text, no letters, no numbers on the clock face, no UI, no phone, no scene, no full character, no watermark, no border, no tiny details.",
+    "path": "docs/design-explorations/app-icon-anime-alarm-clock-more/generated/12-hard-wake-clock.png",
+    "width": null,
+    "height": null,
+    "seed": null,
+    "model": "fal-ai/nano-banana-pro"
+  }
+]
