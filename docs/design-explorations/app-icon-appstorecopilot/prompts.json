@@ -1,0 +1,38 @@
+[
+  {
+    "id": "01-flat-alarm-dawn",
+    "label": "Flat Alarm Dawn",
+    "style": "flat",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: bold alarm clock fused with a dawn sun halo and one crimson wake slash. Style: flat design, solid dark ink navy background, warm paper-white mark, one shonen crimson accent, subtle manga screentone texture only in the background. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  },
+  {
+    "id": "02-3d-cold-open-clock",
+    "label": "3D Cold Open Clock",
+    "style": "3d",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: one premium 3D alarm clock medallion emerging from dark navy, with a crimson anime signal slash and a small dawn glow behind it. Style: 3D rendered, glossy but restrained, subtle shadows, volumetric first-light rim, premium native app icon polish. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  },
+  {
+    "id": "03-minimal-title-slam",
+    "label": "Minimal Title Slam",
+    "style": "minimalist",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: minimal alarm clock center mark inside a sharp manga title-card burst, one crimson lightning hand in the clock. Style: ultra minimal, high contrast, dark ink navy background, warm paper burst, one crimson signal, maximum readability. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  },
+  {
+    "id": "04-gradient-wake-quest",
+    "label": "Gradient Wake Quest",
+    "style": "gradient",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: alarm clock silhouette with a simple upward shoe-step proof mark inside it, representing get up to turn the alarm off. Style: modern gradient, dark navy to deep crimson glow, warm gold/paper central mark, app icon quality, not a fitness app. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  },
+  {
+    "id": "05-metallic-first-light",
+    "label": "Metallic First Light",
+    "style": "metallic",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: alarm-clock sun medallion with one tiny ember-gold foil glint and one crimson notch, like first light after clearing the Wake Quest. Style: premium metallic warm paper and gold material, dark ink navy full-bleed background, restrained luxury, no clutter. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  },
+  {
+    "id": "06-neon-wake-signal",
+    "label": "Neon Wake Signal",
+    "style": "neon",
+    "prompt": "Professional iOS/Android app icon for WakeSaga. Symbol: simple alarm bell / clock mark made of warm paper lines with a crimson neon wake signal slash. Style: dark OLED ink navy, neon crimson glow, anime cold-open energy, high contrast, restrained not cyberpunk. Square 1:1 source image, background fills entire frame edge to edge, no rounded corners, no border, no text, no letters, no numbers, no phone, no UI screenshot, no scene, no tiny details, no watermark. Single centered iconic element, instantly recognizable at small sizes, professional App Store and Google Play quality."
+  }
+]

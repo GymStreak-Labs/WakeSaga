@@ -1,0 +1,50 @@
+[
+  {
+    "id": "01-flat-alarm-dawn",
+    "label": "Flat Alarm Dawn",
+    "style": "flat",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/01-flat-alarm-dawn.png",
+    "seed": null,
+    "inferenceTime": null
+  },
+  {
+    "id": "02-3d-cold-open-clock",
+    "label": "3D Cold Open Clock",
+    "style": "3d",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/02-3d-cold-open-clock.png",
+    "seed": null,
+    "inferenceTime": null
+  },
+  {
+    "id": "03-minimal-title-slam",
+    "label": "Minimal Title Slam",
+    "style": "minimalist",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/03-minimal-title-slam.png",
+    "seed": null,
+    "inferenceTime": null
+  },
+  {
+    "id": "04-gradient-wake-quest",
+    "label": "Gradient Wake Quest",
+    "style": "gradient",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/04-gradient-wake-quest.png",
+    "seed": null,
+    "inferenceTime": null
+  },
+  {
+    "id": "05-metallic-first-light",
+    "label": "Metallic First Light",
+    "style": "metallic",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/05-metallic-first-light.png",
+    "seed": null,
+    "inferenceTime": null
+  },
+  {
+    "id": "06-neon-wake-signal",
+    "label": "Neon Wake Signal",
+    "style": "neon",
+    "path": "/Users/missioncontrol/Documents/GymStreak-Labs/WakeSaga/docs/design-explorations/app-icon-appstorecopilot/generated/06-neon-wake-signal.png",
+    "seed": null,
+    "inferenceTime": null
+  }
+]
