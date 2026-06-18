@@ -497,6 +497,14 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     'assets/onboarding/support/knockdown_canon.png',
     'assets/onboarding/support/permission_trust.png',
     'assets/onboarding/support/rendering_episode.png',
+    'assets/onboarding/unique/sleep_inertia_hero.png',
+    'assets/onboarding/unique/old_loop_hero.png',
+    'assets/onboarding/unique/saga_loop_hero.png',
+    'assets/onboarding/unique/wake_quest_hero.png',
+    'assets/onboarding/unique/no_traps_hero.png',
+    'assets/onboarding/unique/knockdown_hero.png',
+    'assets/onboarding/unique/permissions_hero.png',
+    'assets/onboarding/unique/rendering_hero.png',
   ];
 
   void _next() {
@@ -1295,18 +1303,32 @@ class _EducationStep extends StatelessWidget {
   final _OnboardingStep step;
 
   String? get _asset => switch (step.kicker) {
-    'PAYOFF' => 'assets/onboarding/support/body_first.png',
-    'SLEEP INERTIA' => 'assets/onboarding/support/sleep_inertia.png',
-    'OLD LOOP' => 'assets/onboarding/support/old_loop.png',
-    'SAGA LOOP' => 'assets/onboarding/support/saga_loop.png',
+    'PAYOFF' => 'assets/onboarding/unique/wake_quest_hero.png',
+    'SLEEP INERTIA' => 'assets/onboarding/unique/sleep_inertia_hero.png',
+    'OLD LOOP' => 'assets/onboarding/unique/old_loop_hero.png',
+    'SAGA LOOP' => 'assets/onboarding/unique/saga_loop_hero.png',
     'ONE RULE' => 'assets/onboarding/support/body_first.png',
     'TITLE CARD' => 'assets/onboarding/support/title_reward.png',
-    'WAKE QUEST' => 'assets/onboarding/support/wake_quest_rule.png',
-    'NO TRAPS' => 'assets/onboarding/support/no_traps.png',
-    'KNOCKDOWNS' => 'assets/onboarding/support/knockdown_canon.png',
-    'PERMISSION PRIMER' => 'assets/onboarding/support/permission_trust.png',
-    'REVIEW' => 'assets/onboarding/support/rendering_episode.png',
+    'WAKE QUEST' => 'assets/onboarding/unique/wake_quest_hero.png',
+    'NO TRAPS' => 'assets/onboarding/unique/no_traps_hero.png',
+    'KNOCKDOWNS' => 'assets/onboarding/unique/knockdown_hero.png',
+    'PERMISSION PRIMER' => 'assets/onboarding/unique/permissions_hero.png',
+    'REVIEW' => 'assets/onboarding/unique/rendering_hero.png',
     _ => null,
+  };
+
+  _EducationLayout get _layout => switch (step.kicker) {
+    'PAYOFF' || 'ONE RULE' => _EducationLayout.impact,
+    'SLEEP INERTIA' => _EducationLayout.fog,
+    'OLD LOOP' => _EducationLayout.brokenLoop,
+    'SAGA LOOP' => _EducationLayout.protocol,
+    'TITLE CARD' => _EducationLayout.titleReward,
+    'WAKE QUEST' => _EducationLayout.quest,
+    'NO TRAPS' => _EducationLayout.safety,
+    'KNOCKDOWNS' => _EducationLayout.canon,
+    'PERMISSION PRIMER' => _EducationLayout.permissions,
+    'REVIEW' => _EducationLayout.rendering,
+    _ => _EducationLayout.note,
   };
 
   String get _label => switch (step.kicker) {
@@ -1328,48 +1350,31 @@ class _EducationStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = _asset;
+    if (asset == null) {
+      return ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          _Header(step: step, showBody: false),
+          const SizedBox(height: 36),
+          _EducationCopyPanel(label: _label, body: step.body),
+          const SizedBox(height: 24),
+        ],
+      );
+    }
     return ListView(
       padding: EdgeInsets.zero,
       children: [
         _Header(step: step, showBody: false),
-        if (asset != null) ...[
-          const SizedBox(height: 16),
-          _TimedEntrance(
-            delay: const Duration(milliseconds: 70),
-            offset: const Offset(0, 0.04),
-            child: _SupportVisual(asset: asset, kicker: step.kicker),
-          ),
-          const SizedBox(height: 16),
-        ] else
-          const SizedBox(height: 36),
+        const SizedBox(height: 14),
         _TimedEntrance(
-          delay: const Duration(milliseconds: 90),
-          offset: const Offset(0, 0.05),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(22),
-            decoration: InkSignal.panel(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // The panel label changes by beat so the long flow does
-                // not feel like the same note card repeating.
-                SkewedDisplay(_label, size: 34, textAlign: TextAlign.left),
-                const SizedBox(height: 16),
-                Text(
-                  step.body,
-                  style: InkSignal.ui(
-                    20,
-                    color: InkSignal.paper.withValues(alpha: 0.78),
-                    weight: FontWeight.w700,
-                  ),
-                ),
-                if (step.kicker == 'WAKE QUEST') ...[
-                  const SizedBox(height: 18),
-                  const _WakeQuestProtocolCard(compact: false, framed: false),
-                ],
-              ],
-            ),
+          delay: const Duration(milliseconds: 70),
+          offset: const Offset(0, 0.04),
+          child: _EducationScene(
+            asset: asset,
+            kicker: step.kicker,
+            label: _label,
+            body: step.body,
+            layout: _layout,
           ),
         ),
         const SizedBox(height: 24),
@@ -1378,65 +1383,871 @@ class _EducationStep extends StatelessWidget {
   }
 }
 
-class _SupportVisual extends StatelessWidget {
-  const _SupportVisual({required this.asset, required this.kicker});
+enum _EducationLayout {
+  note,
+  impact,
+  fog,
+  brokenLoop,
+  protocol,
+  titleReward,
+  quest,
+  safety,
+  canon,
+  permissions,
+  rendering,
+}
+
+class _EducationScene extends StatelessWidget {
+  const _EducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+    required this.layout,
+  });
 
   final String asset;
   final String kicker;
+  final String label;
+  final String body;
+  final _EducationLayout layout;
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    final tallAsset = asset.contains('sleep_inertia');
-    final visualHeight = tallAsset
-        ? (size.height * 0.22).clamp(150.0, 188.0)
-        : (size.height * 0.17).clamp(122.0, 158.0);
-    return Container(
-      height: visualHeight,
-      width: double.infinity,
-      decoration: InkSignal.panel(color: InkSignal.paper),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          const CustomPaint(
-            painter: ScreentonePainter(color: InkSignal.base, opacity: 0.035),
+    return switch (layout) {
+      _EducationLayout.impact => _ImpactEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.fog => _FogEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.brokenLoop => _BrokenLoopEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.protocol => _ProtocolEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.quest => _QuestEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.safety => _SafetyEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.canon => _CanonEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.permissions => _PermissionEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.titleReward ||
+      _EducationLayout.rendering => _HeroEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
+      _EducationLayout.note => _EducationCopyPanel(label: label, body: body),
+    };
+  }
+}
+
+class _ImpactEducationScene extends StatelessWidget {
+  const _ImpactEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 266,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.crimson,
+                    opacity: 0.10,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -38,
+                top: 6,
+                bottom: 8,
+                width: 270,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 22, child: _SceneStamp(kicker)),
+              Positioned(
+                left: 0,
+                bottom: 10,
+                width: 214,
+                child: _EducationCopyPanel(
+                  label: label,
+                  body: body,
+                  compact: true,
+                ),
+              ),
+            ],
           ),
-          Positioned(
-            left: tallAsset ? -24 : -54,
-            right: tallAsset ? -24 : -54,
-            top: tallAsset ? -44 : -20,
-            bottom: tallAsset ? -56 : -20,
-            child: Transform.scale(
-              scale: tallAsset ? 1.0 : 1.22,
-              child: Image.asset(
-                asset,
-                fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
+        ),
+      ],
+    );
+  }
+}
+
+class _FogEducationScene extends StatelessWidget {
+  const _FogEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 296,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: InkSignal.inkBorder.withValues(alpha: 0.72),
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                    gradient: const RadialGradient(
+                      center: Alignment(0.4, -0.48),
+                      radius: 1.1,
+                      colors: [Color(0xFF263143), InkSignal.base],
+                    ),
+                  ),
+                ),
+              ),
+              const Positioned.fill(
+                child: CustomPaint(painter: ScreentonePainter(opacity: 0.05)),
+              ),
+              Positioned(
+                right: -18,
+                left: 28,
+                top: -24,
+                bottom: 70,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 12, top: 12, child: _SceneStamp(kicker)),
+              Positioned(
+                left: 14,
+                right: 14,
+                bottom: 14,
+                child: _EducationCopyPanel(
+                  label: label,
+                  body: body,
+                  compact: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BrokenLoopEducationScene extends StatelessWidget {
+  const _BrokenLoopEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 192,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: -18,
+                right: -18,
+                top: -18,
+                bottom: -18,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 8, child: _SceneStamp(kicker)),
+              Positioned(
+                right: 0,
+                bottom: 12,
+                child: Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: InkSignal.crimson, width: 3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: const [
+            Expanded(child: _LoopBeat(label: 'alarm', dim: true)),
+            _SlashDivider(),
+            Expanded(child: _LoopBeat(label: 'escape', hot: true)),
+            _SlashDivider(),
+            Expanded(child: _LoopBeat(label: 'panic', dim: true)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _EducationCopyPanel(label: label, body: body),
+      ],
+    );
+  }
+}
+
+class _ProtocolEducationScene extends StatelessWidget {
+  const _ProtocolEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.paper,
+                    opacity: 0.05,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -32,
+                right: -32,
+                top: 6,
+                bottom: 10,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 0, child: _SceneStamp(kicker)),
+            ],
+          ),
+        ),
+        const _ThreeStepRail(
+          steps: [
+            ('1', 'Alarm rings'),
+            ('2', 'Clear quest'),
+            ('3', 'Episode unlocks'),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _EducationCopyPanel(label: label, body: body),
+      ],
+    );
+  }
+}
+
+class _QuestEducationScene extends StatelessWidget {
+  const _QuestEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 238,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.crimson,
+                    opacity: 0.09,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -22,
+                right: -22,
+                top: -18,
+                bottom: -12,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 10, child: _SceneStamp(kicker)),
+            ],
+          ),
+        ),
+        _EducationCopyPanel(label: label, body: body),
+        const SizedBox(height: 14),
+        const _WakeQuestProtocolCard(compact: false, framed: false),
+      ],
+    );
+  }
+}
+
+class _SafetyEducationScene extends StatelessWidget {
+  const _SafetyEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 206,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: -28,
+                right: -28,
+                top: -18,
+                bottom: -18,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 8, child: _SceneStamp(kicker)),
+            ],
+          ),
+        ),
+        const _ThreeStepRail(
+          steps: [('1', 'Try quest'), ('2', 'Fallback'), ('3', 'Log honestly')],
+          safe: true,
+        ),
+        const SizedBox(height: 14),
+        _EducationCopyPanel(label: label, body: body),
+      ],
+    );
+  }
+}
+
+class _CanonEducationScene extends StatelessWidget {
+  const _CanonEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 242,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.knockdownInk,
+                    opacity: 0.12,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -18,
+                right: -18,
+                top: -28,
+                bottom: -18,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 10, child: _SceneStamp(kicker)),
+            ],
+          ),
+        ),
+        _EducationCopyPanel(
+          label: label,
+          body: body,
+          borderColor: InkSignal.knockdownInk,
+        ),
+      ],
+    );
+  }
+}
+
+class _PermissionEducationScene extends StatelessWidget {
+  const _PermissionEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 186,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned(
+                left: -10,
+                right: -10,
+                top: -22,
+                bottom: -24,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 6, child: _SceneStamp(kicker)),
+            ],
+          ),
+        ),
+        Row(
+          children: const [
+            Expanded(
+              child: _PermissionChip(
+                icon: Icons.notifications_active_rounded,
+                label: 'Alarm',
               ),
             ),
+            SizedBox(width: 8),
+            Expanded(
+              child: _PermissionChip(
+                icon: Icons.directions_run_rounded,
+                label: 'Motion',
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: _PermissionChip(
+                icon: Icons.photo_camera_rounded,
+                label: 'Camera',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        _EducationCopyPanel(label: label, body: body),
+      ],
+    );
+  }
+}
+
+class _HeroEducationScene extends StatelessWidget {
+  const _HeroEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 220,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.gold,
+                    opacity: 0.08,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: -28,
+                right: -28,
+                top: -20,
+                bottom: -18,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 8, child: _SceneStamp(kicker)),
+            ],
           ),
-          Positioned(
-            left: 12,
-            top: 10,
+        ),
+        _EducationCopyPanel(label: label, body: body),
+      ],
+    );
+  }
+}
+
+class _EducationCopyPanel extends StatelessWidget {
+  const _EducationCopyPanel({
+    required this.label,
+    required this.body,
+    this.compact = false,
+    this.borderColor,
+  });
+
+  final String label;
+  final String body;
+  final bool compact;
+  final Color? borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(compact ? 16 : 22),
+      decoration: InkSignal.panel(
+        borderColor: borderColor ?? InkSignal.inkBorder,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkewedDisplay(
+            label,
+            size: compact ? 26 : 34,
+            textAlign: TextAlign.left,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            body,
+            style: InkSignal.ui(
+              compact ? 17 : 20,
+              color: InkSignal.paper.withValues(alpha: 0.78),
+              weight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SceneStamp extends StatelessWidget {
+  const _SceneStamp(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: InkSignal.paper,
+        borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            offset: const Offset(2, 3),
+          ),
+        ],
+      ),
+      child: Text(label, style: InkSignal.mono(9, color: InkSignal.base)),
+    );
+  }
+}
+
+class _LoopBeat extends StatelessWidget {
+  const _LoopBeat({required this.label, this.hot = false, this.dim = false});
+
+  final String label;
+  final bool hot;
+  final bool dim;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = hot
+        ? InkSignal.crimson
+        : InkSignal.paper.withValues(alpha: dim ? 0.46 : 0.8);
+    return Container(
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border.all(color: color.withValues(alpha: 0.7), width: 1.5),
+        borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+      ),
+      child: Text(label.toUpperCase(), style: InkSignal.mono(10, color: color)),
+    );
+  }
+}
+
+class _SlashDivider extends StatelessWidget {
+  const _SlashDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Transform.rotate(
+        angle: -0.45,
+        child: Container(width: 2, height: 32, color: InkSignal.crimson),
+      ),
+    );
+  }
+}
+
+class _ThreeStepRail extends StatelessWidget {
+  const _ThreeStepRail({required this.steps, this.safe = false});
+
+  final List<(String, String)> steps;
+  final bool safe;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (var index = 0; index < steps.length; index++) ...[
+          Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              constraints: const BoxConstraints(minHeight: 58),
+              padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
-                color: InkSignal.base.withValues(alpha: 0.82),
+                color: index == 1
+                    ? (safe ? InkSignal.verifyGreen : InkSignal.crimson)
+                          .withValues(alpha: 0.13)
+                    : InkSignal.surface,
                 border: Border.all(
-                  color: InkSignal.base.withValues(alpha: 0.18),
+                  color: index == 1
+                      ? (safe ? InkSignal.verifyGreen : InkSignal.crimson)
+                      : InkSignal.inkBorder,
+                  width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(InkSignal.panelRadius),
               ),
-              child: Text(
-                kicker,
-                style: InkSignal.mono(
-                  9,
-                  color: InkSignal.paper.withValues(alpha: 0.62),
-                ),
+              child: Column(
+                children: [
+                  Text(
+                    steps[index].$1,
+                    style: InkSignal.display(
+                      22,
+                      color: index == 1
+                          ? (safe ? InkSignal.verifyGreen : InkSignal.crimson)
+                          : InkSignal.paper,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    steps[index].$2.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: InkSignal.mono(
+                      8,
+                      color: InkSignal.paper.withValues(alpha: 0.62),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+          if (index != steps.length - 1)
+            Container(
+              width: 14,
+              height: 2,
+              color: InkSignal.inkBorder,
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PermissionChip extends StatelessWidget {
+  const _PermissionChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 54,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: InkSignal.panel(color: InkSignal.surface),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: InkSignal.verifyGreen, size: 18),
+          const SizedBox(height: 4),
+          Text(
+            label.toUpperCase(),
+            style: InkSignal.mono(
+              8,
+              color: InkSignal.paper.withValues(alpha: 0.68),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FloatingHeroArt extends StatelessWidget {
+  const _FloatingHeroArt({
+    required this.asset,
+    required this.kicker,
+    this.height = 196,
+    this.burstColor = InkSignal.paper,
+  });
+
+  final String asset;
+  final String kicker;
+  final double height;
+  final Color burstColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: SpeedLinesPainter(color: burstColor, opacity: 0.075),
+            ),
+          ),
+          Positioned(
+            left: -28,
+            right: -28,
+            top: -24,
+            bottom: -20,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+          Positioned(left: 0, top: 8, child: _SceneStamp(kicker)),
         ],
       ),
     );
@@ -1671,9 +2482,11 @@ class _RenderStep extends StatelessWidget {
       children: [
         _Header(step: step),
         const SizedBox(height: 16),
-        const _SupportVisual(
-          asset: 'assets/onboarding/support/rendering_episode.png',
+        const _FloatingHeroArt(
+          asset: 'assets/onboarding/unique/rendering_hero.png',
           kicker: 'EPISODE FACTORY',
+          height: 188,
+          burstColor: InkSignal.gold,
         ),
         const SizedBox(height: 18),
         for (final item in items)
@@ -1737,9 +2550,11 @@ class _RevealStep extends StatelessWidget {
       children: [
         _Header(step: step),
         const SizedBox(height: 18),
-        const _SupportVisual(
+        const _FloatingHeroArt(
           asset: 'assets/onboarding/support/title_reward.png',
           kicker: 'OPENING SCENE',
+          height: 184,
+          burstColor: InkSignal.gold,
         ),
         const SizedBox(height: 16),
         _TimedEntrance(

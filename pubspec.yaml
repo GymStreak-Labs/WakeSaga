@@ -69,6 +69,7 @@ flutter:
     - assets/narrators/
     - assets/onboarding/
     - assets/onboarding/support/
+    - assets/onboarding/unique/
 
 
   # To add assets to your application, add an assets section, like this:
