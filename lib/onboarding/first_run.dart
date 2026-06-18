@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +81,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   bool _isTransitioning = false;
   bool _isFinishing = false;
   bool _didPrecacheSupportArt = false;
+  ui.Image? _coldOpenHeroImage;
   DateTime _picked = DateTime(2026, 1, 1, 6, 30);
 
   final Map<String, String> _answers = {
@@ -104,6 +106,12 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     'permission': 'I understand',
     'commitment': 'Sign Episode 1',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadColdOpenHero());
+  }
 
   static const _steps = <_OnboardingStep>[
     _OnboardingStep(
@@ -476,8 +484,35 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
     super.didChangeDependencies();
     if (_didPrecacheSupportArt) return;
     _didPrecacheSupportArt = true;
-    for (final asset in _supportArtAssets) {
-      precacheImage(AssetImage(asset), context);
+    unawaited(_precacheSupportArt());
+  }
+
+  Future<void> _precacheSupportArt() async {
+    final backgroundFutures = [
+      for (final asset in _supportArtAssets)
+        if (asset != _ColdOpenStep.heroAsset)
+          precacheImage(AssetImage(asset), context),
+    ];
+    for (final future in backgroundFutures) {
+      unawaited(future.catchError((_) {}));
+    }
+  }
+
+  Future<void> _loadColdOpenHero() async {
+    try {
+      final bytes = await rootBundle.load(_ColdOpenStep.heroAsset);
+      final data = bytes.buffer.asUint8List(
+        bytes.offsetInBytes,
+        bytes.lengthInBytes,
+      );
+      final codec = await ui.instantiateImageCodec(data);
+      final frame = await codec.getNextFrame();
+      if (mounted) {
+        setState(() => _coldOpenHeroImage = frame.image);
+      }
+    } catch (_) {
+      // The code-native fallback keeps the landing page illustrated if the
+      // generated PNG cannot be decoded on the first frame.
     }
   }
 
@@ -486,6 +521,8 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
   double get _progress => (_index + 1) / _steps.length;
 
   static const _supportArtAssets = [
+    'assets/onboarding/unique/cold_open_hero_v2.png',
+    'assets/onboarding/unique/rival_detected_hero.png',
     'assets/onboarding/cold-open-anime-character.png',
     'assets/onboarding/support/body_first.png',
     'assets/onboarding/support/sleep_inertia.png',
@@ -688,6 +725,7 @@ class _FirstRunFlowState extends State<FirstRunFlow> {
                         nameController: _nameController,
                         missionController: _missionController,
                         answers: _answers,
+                        coldOpenHeroImage: _coldOpenHeroImage,
                         onSelect: _select,
                         onTimeChanged: (value) =>
                             setState(() => _picked = value),
@@ -972,6 +1010,7 @@ class _StepBody extends StatelessWidget {
     required this.nameController,
     required this.missionController,
     required this.answers,
+    required this.coldOpenHeroImage,
     required this.onSelect,
     required this.onTimeChanged,
     required this.onContinueWithoutRating,
@@ -983,6 +1022,7 @@ class _StepBody extends StatelessWidget {
   final TextEditingController nameController;
   final TextEditingController missionController;
   final Map<String, String> answers;
+  final ui.Image? coldOpenHeroImage;
   final void Function(String field, String value) onSelect;
   final ValueChanged<DateTime> onTimeChanged;
   final VoidCallback onContinueWithoutRating;
@@ -1002,7 +1042,10 @@ class _StepBody extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
       child: switch (step.kind) {
-        _StepKind.coldOpen => _ColdOpenStep(step: step),
+        _StepKind.coldOpen => _ColdOpenStep(
+          step: step,
+          heroImage: coldOpenHeroImage,
+        ),
         _StepKind.titleCard => _TitleCardStep(step: step),
         _StepKind.choice => _ChoiceStep(
           step: step,
@@ -1038,79 +1081,172 @@ class _StepBody extends StatelessWidget {
 }
 
 class _ColdOpenStep extends StatelessWidget {
-  const _ColdOpenStep({required this.step});
+  const _ColdOpenStep({required this.step, required this.heroImage});
 
-  static const _heroAsset = 'assets/onboarding/cold-open-anime-character.png';
+  static const heroAsset = 'assets/onboarding/unique/cold_open_hero_v2.png';
 
   final _OnboardingStep step;
+  final ui.Image? heroImage;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.expand,
       clipBehavior: Clip.none,
       children: [
         Positioned(
-          right: -92,
+          right: -96,
           top: 72,
-          bottom: 112,
-          child: Opacity(
-            opacity: 0.68,
-            child: Image.asset(
-              _heroAsset,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  InkSignal.crimson.withValues(alpha: 0.24),
+                  InkSignal.crimson.withValues(alpha: 0.03),
+                  Colors.transparent,
+                ],
+                stops: const [0, 0.48, 1],
+              ),
             ),
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              step.kicker,
-              style: InkSignal.mono(12, color: InkSignal.crimson),
-            ),
-            const Spacer(),
-            const SkewedDisplay(
-              'START YOUR DAY',
-              size: 42,
-              textAlign: TextAlign.left,
-            ),
-            const SkewedDisplay(
-              'LIKE AN ANIME',
-              size: 42,
-              textAlign: TextAlign.left,
-            ),
-            const SkewedDisplay(
-              'CHARACTER',
-              size: 42,
-              textAlign: TextAlign.left,
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: 245,
-              child: Text(
-                step.body,
-                style: InkSignal.ui(
-                  17,
-                  color: InkSignal.paper.withValues(alpha: 0.78),
-                  weight: FontWeight.w700,
+        Positioned.fill(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                step.kicker,
+                style: InkSignal.mono(12, color: InkSignal.crimson),
+              ),
+              SizedBox(
+                height: 224,
+                width: double.infinity,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: heroImage != null
+                      ? RawImage(
+                          image: heroImage,
+                          height: 202,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        )
+                      : const _ColdOpenHeroFallback(),
                 ),
               ),
-            ),
-            const Spacer(),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'LONG COLD OPEN',
-                style: InkSignal.mono(
-                  12,
-                  color: InkSignal.paper.withValues(alpha: 0.45),
+              const SizedBox(height: 2),
+              const SkewedDisplay(
+                'START YOUR DAY',
+                size: 40,
+                textAlign: TextAlign.left,
+              ),
+              const SkewedDisplay(
+                'LIKE AN ANIME',
+                size: 40,
+                textAlign: TextAlign.left,
+              ),
+              const SkewedDisplay(
+                'CHARACTER',
+                size: 40,
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: 260,
+                child: Text(
+                  step.body,
+                  style: InkSignal.ui(
+                    17,
+                    color: InkSignal.paper.withValues(alpha: 0.78),
+                    weight: FontWeight.w700,
+                  ),
                 ),
               ),
-            ),
-          ],
+              const Spacer(flex: 2),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'LONG COLD OPEN',
+                  style: InkSignal.mono(
+                    12,
+                    color: InkSignal.paper.withValues(alpha: 0.45),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _ColdOpenHeroFallback extends StatelessWidget {
+  const _ColdOpenHeroFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 216,
+      height: 216,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: SpeedLinesPainter(
+                color: InkSignal.crimson,
+                opacity: 0.16,
+              ),
+            ),
+          ),
+          Positioned(
+            right: 32,
+            top: 36,
+            child: Transform.rotate(
+              angle: -0.22,
+              child: Container(
+                width: 108,
+                height: 108,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: InkSignal.paper, width: 6),
+                  color: InkSignal.base,
+                  boxShadow: [
+                    BoxShadow(
+                      color: InkSignal.crimson.withValues(alpha: 0.35),
+                      blurRadius: 34,
+                      spreadRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.alarm_rounded,
+                  size: 58,
+                  color: InkSignal.crimson,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 6,
+            top: 114,
+            child: Transform.rotate(
+              angle: -0.35,
+              child: Container(
+                width: 180,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: InkSignal.crimson,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1303,7 +1439,7 @@ class _EducationStep extends StatelessWidget {
   final _OnboardingStep step;
 
   String? get _asset => switch (step.kicker) {
-    'PAYOFF' => 'assets/onboarding/unique/wake_quest_hero.png',
+    'PAYOFF' => 'assets/onboarding/unique/rival_detected_hero.png',
     'SLEEP INERTIA' => 'assets/onboarding/unique/sleep_inertia_hero.png',
     'OLD LOOP' => 'assets/onboarding/unique/old_loop_hero.png',
     'SAGA LOOP' => 'assets/onboarding/unique/saga_loop_hero.png',
@@ -1318,7 +1454,8 @@ class _EducationStep extends StatelessWidget {
   };
 
   _EducationLayout get _layout => switch (step.kicker) {
-    'PAYOFF' || 'ONE RULE' => _EducationLayout.impact,
+    'PAYOFF' => _EducationLayout.rival,
+    'ONE RULE' => _EducationLayout.impact,
     'SLEEP INERTIA' => _EducationLayout.fog,
     'OLD LOOP' => _EducationLayout.brokenLoop,
     'SAGA LOOP' => _EducationLayout.protocol,
@@ -1385,6 +1522,7 @@ class _EducationStep extends StatelessWidget {
 
 enum _EducationLayout {
   note,
+  rival,
   impact,
   fog,
   brokenLoop,
@@ -1415,6 +1553,12 @@ class _EducationScene extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (layout) {
+      _EducationLayout.rival => _RivalEducationScene(
+        asset: asset,
+        kicker: kicker,
+        label: label,
+        body: body,
+      ),
       _EducationLayout.impact => _ImpactEducationScene(
         asset: asset,
         kicker: kicker,
@@ -1472,6 +1616,103 @@ class _EducationScene extends StatelessWidget {
       ),
       _EducationLayout.note => _EducationCopyPanel(label: label, body: body),
     };
+  }
+}
+
+class _RivalEducationScene extends StatelessWidget {
+  const _RivalEducationScene({
+    required this.asset,
+    required this.kicker,
+    required this.label,
+    required this.body,
+  });
+
+  final String asset;
+  final String kicker;
+  final String label;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 288,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SpeedLinesPainter(
+                    color: InkSignal.crimson,
+                    opacity: 0.13,
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -4,
+                top: 44,
+                bottom: 58,
+                width: 190,
+                child: Image.asset(
+                  asset,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+              Positioned(left: 0, top: 16, child: _SceneStamp(kicker)),
+              Positioned(
+                left: 0,
+                top: 66,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: InkSignal.crimson,
+                    borderRadius: BorderRadius.circular(InkSignal.panelRadius),
+                    boxShadow: [
+                      BoxShadow(
+                        color: InkSignal.crimson.withValues(alpha: 0.28),
+                        blurRadius: 22,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'MORNING ENEMY FOUND',
+                    style: InkSignal.mono(10, color: InkSignal.paper),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 104,
+                bottom: 10,
+                child: _EducationCopyPanel(
+                  label: label,
+                  body: body,
+                  compact: true,
+                  borderColor: InkSignal.crimson.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: const [
+            Expanded(child: _LoopBeat(label: 'bed', dim: true)),
+            SizedBox(width: 8),
+            Expanded(child: _LoopBeat(label: 'phone', hot: true)),
+            SizedBox(width: 8),
+            Expanded(child: _LoopBeat(label: 'fog', dim: true)),
+          ],
+        ),
+      ],
+    );
   }
 }
 
