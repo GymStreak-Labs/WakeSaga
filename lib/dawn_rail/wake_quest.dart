@@ -98,6 +98,7 @@ class _WakeQuestState extends State<WakeQuest>
     HapticFeedback.heavyImpact();
     _pulse.stop();
     unawaited(WakeSagaAudio.instance.markQuestCleared());
+    AppScope.of(context, listen: false).markWakeQuestCleared();
     setState(() => _verified = true);
     // Brief verify-green beat, then the earned unlock screen makes the reward
     // explicit before the title card and episode playback.

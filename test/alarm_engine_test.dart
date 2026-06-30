@@ -50,6 +50,67 @@ void main() {
     expect(restored.expectedFires.single.outcome, AlarmOutcome.pending);
   });
 
+  test('cold launch updates expected-fire record through quest clear', () {
+    final state = AppState();
+    state.clock = () => DateTime(2026, 6, 12, 6, 31);
+    state.firstRunComplete = true;
+    state.setAlarm(
+      time: const TimeOfDay(hour: 6, minute: 30),
+      enabled: true,
+      questType: 'Get Up',
+    );
+    final plan = state.ensureActiveAlarmPlan();
+    final scheduledFor = DateTime(2026, 6, 12, 6, 30);
+    state.confirmScheduledAlarm(
+      ScheduledAlarm(
+        plan: plan,
+        scheduledFor: scheduledFor,
+        engineMode: 'fake-compatibility',
+      ),
+    );
+
+    final launchedAt = DateTime(2026, 6, 12, 6, 30, 5);
+    state.registerAlarmLaunch(
+      AlarmLaunch(
+        alarmId: plan.id,
+        source: AlarmLaunchSource.coldStart,
+        launchedAt: launchedAt,
+      ),
+    );
+
+    expect(state.consumePendingAlarmLaunch()?.alarmId, plan.id);
+    expect(state.expectedFires, hasLength(1));
+    expect(state.expectedFires.single.scheduledFor, scheduledFor);
+    expect(state.expectedFires.single.actualLaunchAt, launchedAt);
+    expect(state.expectedFires.single.outcome, AlarmOutcome.unknown);
+
+    state.markWakeQuestCleared();
+
+    expect(state.expectedFires.single.outcome, AlarmOutcome.clear);
+    expect(
+      state.expectedFires.single.questClearedAt,
+      DateTime(2026, 6, 12, 6, 31),
+    );
+  });
+
+  test('unexpected native launch is kept as diagnostic evidence', () {
+    final launchedAt = DateTime(2026, 6, 12, 6, 30, 5);
+    final state = AppState()
+      ..registerAlarmLaunch(
+        AlarmLaunch(
+          alarmId: 'native-only-alarm',
+          source: AlarmLaunchSource.coldStart,
+          launchedAt: launchedAt,
+        ),
+      );
+
+    expect(state.expectedFires, hasLength(1));
+    expect(state.expectedFires.single.alarmId, 'native-only-alarm');
+    expect(state.expectedFires.single.scheduledFor, launchedAt);
+    expect(state.expectedFires.single.actualLaunchAt, launchedAt);
+    expect(state.expectedFires.single.outcome, AlarmOutcome.unknown);
+  });
+
   test('FakeAlarmEngine schedules and drains a launch exactly once', () async {
     final launch = AlarmLaunch(
       alarmId: 'wake-test',

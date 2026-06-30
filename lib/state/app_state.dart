@@ -216,6 +216,7 @@ class AppState extends ChangeNotifier {
   String? alarmScheduleError;
   final List<ExpectedFireRecord> expectedFires = [];
   AlarmLaunch? pendingAlarmLaunch;
+  String? activeAlarmRunId;
 
   String get alarmLabel => formatTimeOfDay(alarmTime);
 
@@ -309,6 +310,7 @@ class AppState extends ChangeNotifier {
 
   void registerAlarmLaunch(AlarmLaunch launch) {
     pendingAlarmLaunch = launch;
+    activeAlarmRunId = launch.alarmId;
     final index = expectedFires.indexWhere(
       (record) => record.alarmId == launch.alarmId,
     );
@@ -316,6 +318,15 @@ class AppState extends ChangeNotifier {
       expectedFires[index] = expectedFires[index].copyWith(
         actualLaunchAt: launch.launchedAt,
         outcome: AlarmOutcome.unknown,
+      );
+    } else {
+      _upsertExpectedFire(
+        ExpectedFireRecord(
+          alarmId: launch.alarmId,
+          scheduledFor: _scheduledForLaunch(launch) ?? launch.launchedAt,
+          actualLaunchAt: launch.launchedAt,
+          outcome: AlarmOutcome.unknown,
+        ),
       );
     }
     notifyListeners();
@@ -329,6 +340,7 @@ class AppState extends ChangeNotifier {
   }
 
   void markSystemStopped(String alarmId) {
+    activeAlarmRunId = alarmId;
     final index = expectedFires.indexWhere(
       (record) => record.alarmId == alarmId,
     );
@@ -338,6 +350,11 @@ class AppState extends ChangeNotifier {
         outcome: AlarmOutcome.emergencyStop,
       );
     }
+    notifyListeners();
+  }
+
+  void markWakeQuestCleared() {
+    _markActiveAlarmOutcome(AlarmOutcome.clear);
     notifyListeners();
   }
 
@@ -549,6 +566,7 @@ class AppState extends ChangeNotifier {
     'scheduledAlarm': scheduledAlarm?.toJson(),
     'alarmScheduleError': alarmScheduleError,
     'expectedFires': expectedFires.map((record) => record.toJson()).toList(),
+    'activeAlarmRunId': activeAlarmRunId,
     'recentMusicBedIds': recentMusicBedIds,
   };
 
@@ -625,6 +643,7 @@ class AppState extends ChangeNotifier {
               ExpectedFireRecord.fromJson(Map<String, Object?>.from(item)),
         ),
       );
+    activeAlarmRunId = json['activeAlarmRunId'] as String?;
   }
 
   // ---- Time-aware Today state machine -------------------------------------
@@ -673,6 +692,7 @@ class AppState extends ChangeNotifier {
     );
     scheduledAlarm = null;
     alarmScheduleError = null;
+    activeAlarmRunId = null;
   }
 
   List<int> _repeatDaysFor(String rhythm) {
@@ -720,7 +740,8 @@ class AppState extends ChangeNotifier {
   }
 
   void _markActiveAlarmOutcome(AlarmOutcome outcome) {
-    final alarmId = activeAlarmPlan?.id ?? scheduledAlarm?.plan.id;
+    final alarmId =
+        activeAlarmRunId ?? activeAlarmPlan?.id ?? scheduledAlarm?.plan.id;
     if (alarmId == null) return;
     final index = expectedFires.indexWhere(
       (record) => record.alarmId == alarmId,
@@ -730,6 +751,23 @@ class AppState extends ChangeNotifier {
       questClearedAt: outcome == AlarmOutcome.clear ? clock() : null,
       outcome: outcome,
     );
+    activeAlarmRunId = null;
+  }
+
+  DateTime? _scheduledForLaunch(AlarmLaunch launch) {
+    if (scheduledAlarm?.plan.id == launch.alarmId) {
+      return scheduledAlarm!.scheduledFor;
+    }
+    if (activeAlarmPlan?.id == launch.alarmId) {
+      return DateTime(
+        launch.launchedAt.year,
+        launch.launchedAt.month,
+        launch.launchedAt.day,
+        activeAlarmPlan!.hour,
+        activeAlarmPlan!.minute,
+      );
+    }
+    return null;
   }
 
   EpisodeMusicBed _selectMusicBedForEpisode(int episode) {

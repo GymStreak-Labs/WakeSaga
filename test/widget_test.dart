@@ -63,9 +63,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
+    final state = AppState()..clock = () => DateTime(2026, 6, 12, 6, 31);
+
     await tester.pumpWidget(
       WakeSagaApp(
-        initialState: AppState(),
+        initialState: state,
         alarmEngine: FakeAlarmEngine(),
         initialAlarmLaunch: AlarmLaunch(
           alarmId: 'wake-test',
@@ -80,5 +82,24 @@ void main() {
     expect(find.text('START YOUR DAY'), findsNothing);
     expect(find.byKey(const Key('beginQuest')), findsOneWidget);
     expect(find.text('RINGING'), findsOneWidget);
+    expect(state.expectedFires.single.actualLaunchAt, isNotNull);
+    expect(state.expectedFires.single.outcome, AlarmOutcome.unknown);
+
+    await tester.tap(find.byKey(const Key('beginQuest')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(find.byKey(const Key('questSurface')), findsOneWidget);
+
+    for (var i = 0; i < 20; i++) {
+      await tester.tap(find.byKey(const Key('questSurface')));
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(state.expectedFires.single.outcome, AlarmOutcome.clear);
+    expect(
+      state.expectedFires.single.questClearedAt,
+      DateTime(2026, 6, 12, 6, 31),
+    );
   });
 }
