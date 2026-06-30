@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -160,7 +162,8 @@ class MainAppShell extends StatefulWidget {
   State<MainAppShell> createState() => _MainAppShellState();
 }
 
-class _MainAppShellState extends State<MainAppShell> {
+class _MainAppShellState extends State<MainAppShell>
+    with WidgetsBindingObserver {
   late int _tabIndex = switch (_previewTab) {
     'saga' => 1,
     'profile' || 'cast' => 2,
@@ -186,14 +189,38 @@ class _MainAppShellState extends State<MainAppShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final launch = AppScope.of(
-        context,
-        listen: false,
-      ).consumePendingAlarmLaunch();
-      if (launch != null) _ringAlarmNow();
+      _ringPendingAlarmLaunch();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    unawaited(_consumeNativeAlarmLaunch());
+  }
+
+  Future<void> _consumeNativeAlarmLaunch() async {
+    final launch = await AlarmScope.read(context).consumeLaunchAlarm();
+    if (!mounted || launch == null) return;
+    AppScope.of(context, listen: false).registerAlarmLaunch(launch);
+    _ringPendingAlarmLaunch();
+  }
+
+  void _ringPendingAlarmLaunch() {
+    final launch = AppScope.of(
+      context,
+      listen: false,
+    ).consumePendingAlarmLaunch();
+    if (launch != null) _ringAlarmNow();
   }
 
   @override

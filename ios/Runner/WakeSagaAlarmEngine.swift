@@ -1,4 +1,5 @@
 import AlarmKit
+import AppIntents
 import Flutter
 import Foundation
 import SwiftUI
@@ -9,6 +10,32 @@ struct WakeSagaAlarmMetadata: AlarmMetadata {
   let wakeSagaAlarmId: String
   let episode: Int
   let quest: String
+}
+
+@available(iOS 26.0, *)
+struct WakeSagaOpenAlarmIntent: LiveActivityIntent {
+  static var title: LocalizedStringResource = "Open WakeSaga"
+  static var openAppWhenRun: Bool = true
+
+  @Parameter(title: "Alarm ID")
+  var alarmId: String
+
+  init() {
+    alarmId = ""
+  }
+
+  init(alarmId: String) {
+    self.alarmId = alarmId
+  }
+
+  @MainActor
+  func perform() async throws -> some IntentResult {
+    WakeSagaAlarmEngine.shared.recordLaunch(
+      alarmId: alarmId,
+      source: "warmAction"
+    )
+    return .result()
+  }
 }
 
 final class WakeSagaAlarmEngine {
@@ -41,6 +68,45 @@ final class WakeSagaAlarmEngine {
       }
       self.handle(call: call, result: result)
     }
+  }
+
+  @discardableResult
+  func recordLaunch(from url: URL, source: String) -> Bool {
+    guard url.scheme == "wakesaga", url.host == "alarm" else {
+      return false
+    }
+    let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    let alarmId = components?.queryItems?.first { item in
+      item.name == "alarmId"
+    }?.value ?? latestScheduledAlarmId()
+    guard let alarmId, !alarmId.isEmpty else {
+      return false
+    }
+    recordLaunch(alarmId: alarmId, source: source)
+    return true
+  }
+
+  @discardableResult
+  func recordLaunch(nativeAlarmId: UUID, source: String) -> Bool {
+    guard let alarmId = lookupDartAlarmId(for: nativeAlarmId) else {
+      return false
+    }
+    recordLaunch(alarmId: alarmId, source: source)
+    return true
+  }
+
+  func recordLaunch(alarmId: String, source: String) {
+    guard !alarmId.isEmpty else {
+      return
+    }
+    UserDefaults.standard.set(
+      [
+        "alarmId": alarmId,
+        "source": source,
+        "launchedAt": isoString(Date()),
+      ],
+      forKey: pendingLaunchKey
+    )
   }
 
   private func handle(call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -150,9 +216,16 @@ final class WakeSagaAlarmEngine {
       textColor: Color.white,
       systemImageName: "stop.fill"
     )
+    let openButton = AlarmButton(
+      text: "Open",
+      textColor: Color.white,
+      systemImageName: "figure.walk"
+    )
     let alert = AlarmPresentation.Alert(
       title: LocalizedStringResource(stringLiteral: title),
-      stopButton: stopButton
+      stopButton: stopButton,
+      secondaryButton: openButton,
+      secondaryButtonBehavior: .custom
     )
     let presentation = AlarmPresentation(alert: alert)
     let metadata = WakeSagaAlarmMetadata(
@@ -173,7 +246,8 @@ final class WakeSagaAlarmEngine {
     let schedule = Alarm.Schedule.relative(.init(time: time, repeats: repeats))
     let configuration = AlarmManager.AlarmConfiguration.alarm(
       schedule: schedule,
-      attributes: attributes
+      attributes: attributes,
+      secondaryIntent: WakeSagaOpenAlarmIntent(alarmId: dartId)
     )
 
     _ = try await AlarmManager.shared.schedule(
@@ -216,6 +290,14 @@ final class WakeSagaAlarmEngine {
       return saved
     }
     return []
+  }
+
+  private func latestScheduledAlarmId() -> String? {
+    listScheduled()
+      .compactMap { item in
+        (item["plan"] as? [String: Any])?["id"] as? String
+      }
+      .last
   }
 
   private func consumeLaunchAlarm() -> [String: Any]? {
@@ -359,6 +441,13 @@ final class WakeSagaAlarmEngine {
       return nil
     }
     return UUID(uuidString: raw)
+  }
+
+  private func lookupDartAlarmId(for nativeId: UUID) -> String? {
+    let map = UserDefaults.standard.dictionary(forKey: idMapKey) as? [String: String] ?? [:]
+    return map.first { _, rawNativeId in
+      rawNativeId == nativeId.uuidString
+    }?.key
   }
 
   private func nextFireDate(hour: Int, minute: Int, repeatDays: [Int]) -> Date {

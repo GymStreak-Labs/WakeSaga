@@ -187,4 +187,30 @@ void main() {
     expect(await engine.listScheduled(), isEmpty);
     engine.dispose();
   });
+
+  test('NativeAlarmEngine parses pending native launch payload', () async {
+    const channel = MethodChannel('wakesaga/test_native_alarm_engine');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'consumeLaunchAlarm') {
+            return {
+              'alarmId': 'wake-native',
+              'source': 'warmAction',
+              'launchedAt': '2026-06-12T06:30:05.000Z',
+            };
+          }
+          return null;
+        });
+    final engine = NativeAlarmEngine(channel: channel);
+
+    final launch = await engine.consumeLaunchAlarm();
+
+    expect(launch?.alarmId, 'wake-native');
+    expect(launch?.source, AlarmLaunchSource.warmAction);
+    expect(launch?.launchedAt, DateTime.utc(2026, 6, 12, 6, 30, 5));
+
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+    engine.dispose();
+  });
 }
